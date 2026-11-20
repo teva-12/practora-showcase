@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura,opencover</Format>
+          <Exclude>
+            [ShopElegance.Tests]*
+            [*]*.Migrations.*
+            [*]*.Data.Seeders.*
+            [*]*Program
+          </Exclude>
+          <ExcludeByAttribute>
+            GeneratedCodeAttribute,
+            CompilerGeneratedAttribute,
+            ObsoleteAttribute
+          </ExcludeByAttribute>
+          <ExcludeByFile>
+            **/Migrations/**/*.cs
+          </ExcludeByFile>
+          <Include>
+            [ShopElegance.Core]*
+            [ShopElegance.Infrastructure]*
+            [ShopElegance.Web]*
+          </Include>
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>true</UseSourceLink>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+  <InProcDataCollectionRunSettings>
+    <InProcDataCollectors>
+      <InProcDataCollector
+        assemblyQualifiedName="coverlet.collector.DataCollection.CoverageCollector, coverlet.collector, Version=6.0.0.0, Culture=neutral, PublicKeyToken=null"
+        friendlyName="XPlat Code Coverage"
+        enabled="True" />
+    </InProcDataCollectors>
+  </InProcDataCollectionRunSettings>
+</RunSettings>

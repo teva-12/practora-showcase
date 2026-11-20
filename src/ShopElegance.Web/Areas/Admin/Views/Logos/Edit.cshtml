@@ -1,0 +1,59 @@
+@model ShopElegance.Core.DTOs.CreateLogoDto
+@{
+    ViewData["Title"] = "Edit Logo";
+    int logoId = ViewBag.LogoId;
+    string currentImageUrl = ViewBag.CurrentImageUrl;
+}
+
+<div class="breadcrumb">
+    <a asp-action="Index">Logos</a><span>›</span><span>Edit Logo</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Edit Logo</h1>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-secondary">← Cancel</a>
+        <button type="submit" form="logoForm" class="btn btn-primary">Save Changes</button>
+    </div>
+</div>
+
+<form asp-action="Edit" asp-route-id="@logoId" method="post" enctype="multipart/form-data" id="logoForm">
+    <div class="content-card" style="max-width:600px">
+        <div class="content-card-body">
+            <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"block")"></div>
+
+            <div class="form-group">
+                <label asp-for="Name">Logo Name *</label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type">Type *</label>
+                <select asp-for="Type" class="form-control">
+                    @foreach (var t in new[] { "University", "Hospital", "Custom" })
+                    {
+                        <option value="@t" selected="@(t == Model.Type)">@t</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Current Image</label><br />
+                <img src="@currentImageUrl" alt="@Model.Name" style="width:80px;height:80px;object-fit:contain;border:1px solid var(--border);border-radius:6px;margin-bottom:8px" />
+                <div class="image-upload-area" onclick="document.getElementById('logoImage').click()">
+                    <div class="image-upload-icon">🖼</div>
+                    <p style="font-size:0.875rem;color:var(--text-muted)">Click to replace the logo image</p>
+                    <input type="file" id="logoImage" name="imageFile" accept="image/*" style="display:none" onchange="document.getElementById('logoFileName').textContent = this.files[0]?.name || ''" />
+                </div>
+                <small id="logoFileName" class="help-text"></small>
+                <input type="hidden" asp-for="ImageUrl" />
+            </div>
+            <div class="form-check">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                <label asp-for="IsActive">Active (available for customers to choose)</label>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}

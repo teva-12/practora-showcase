@@ -1,0 +1,139 @@
+@model ShopElegance.Core.DTOs.PagedResultDto<ShopElegance.Core.DTOs.ProductListDto>
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Products</h1>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">+ Add Product</a>
+    </div>
+</div>
+
+<form method="get" class="filters-bar">
+    <div class="filter-input-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" name="search" class="filter-input" placeholder="Search products..." value="@ViewBag.Search" />
+    </div>
+    <select name="categoryId" class="filter-select">
+        <option value="">All Categories</option>
+        @if (ViewBag.Categories is IEnumerable<ShopElegance.Core.DTOs.CategoryDto> cats)
+        {
+            @foreach (var cat in cats)
+            {
+                <option value="@cat.Id" selected="@((int?)ViewBag.CategoryId == cat.Id)">@cat.Name</option>
+            }
+        }
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    <a asp-action="Index" class="btn btn-secondary btn-sm">Reset</a>
+</form>
+
+<div class="content-card">
+    <div class="content-card-header">
+        <span class="content-card-title">@Model.TotalCount products</span>
+    </div>
+    <div class="content-card-body" style="padding:0">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Sales</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="8" class="table-empty">No products found.</td></tr>
+                    }
+                    @foreach (var p in Model.Items)
+                    {
+                        <tr data-href="@Url.Action("Edit", new {id = p.Id})">
+                            <td>
+                                <div style="display:flex;align-items:center;gap:12px">
+                                    <div style="width:44px;height:44px;border-radius:6px;border:1px solid var(--border);overflow:hidden;flex-shrink:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">
+                                        @if (!string.IsNullOrEmpty(p.PrimaryImageUrl))
+                                        {
+                                            <img src="@p.PrimaryImageUrl" alt="@p.Name" style="width:100%;height:100%;object-fit:cover" />
+                                        }
+                                        else
+                                        {
+                                            <span style="color:var(--text-muted)">✦</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:0.875rem">@p.Name</div>
+                                        @if (!string.IsNullOrEmpty(p.CategoryName))
+                                        {
+                                            <div style="font-size:0.75rem;color:var(--text-muted)">@p.CategoryName</div>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-size:0.875rem;color:var(--text-muted)">@p.CategoryName</td>
+                            <td><span class="status-pill" style="background:var(--bg-primary);color:var(--text-secondary)">@p.ProductType</span></td>
+                            <td>
+                                <strong style="font-size:0.9rem">@p.Price.ToString("C")</strong>
+                                @if (p.CompareAtPrice.HasValue)
+                                {
+                                    <br /><span style="font-size:0.75rem;color:var(--text-muted);text-decoration:line-through">@p.CompareAtPrice.Value.ToString("C")</span>
+                                }
+                            </td>
+                            <td>
+                                <span style="font-weight:600;color:@(p.StockQuantity <= 5 ? "#e17055" : p.StockQuantity <= 15 ? "#fdcb6e" : "var(--text-primary)")">
+                                    @p.StockQuantity
+                                </span>
+                            </td>
+                            <td>
+                                @if (p.IsActive)
+                                {
+                                    <span class="status-pill status-delivered">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-cancelled">Inactive</span>
+                                }
+                            </td>
+                            <td style="font-size:0.875rem">@p.SalesCount</td>
+                            <td onclick="event.stopPropagation()">
+                                <div style="display:flex;gap:6px">
+                                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-outline btn-sm">Edit</a>
+                                    <form asp-action="Delete" method="post" style="display:inline"
+                                          onsubmit="return confirm('Delete this product?')">
+                                        <input type="hidden" name="id" value="@p.Id" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination">
+                @if (Model.HasPreviousPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@ViewBag.Search" class="page-btn">← Prev</a>
+                }
+                @for (int i = Math.Max(1, Model.Page-2); i <= Math.Min(Model.TotalPages, Model.Page+2); i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-search="@ViewBag.Search" class="page-btn @(i==Model.Page?"active":"")">@i</a>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@ViewBag.Search" class="page-btn">Next →</a>
+                }
+            </div>
+        }
+    </div>
+</div>

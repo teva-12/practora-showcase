@@ -1,0 +1,116 @@
+@using ShopElegance.Core.DTOs
+@{
+    ViewData["Title"] = "Home";
+    var categories = (ViewBag.Categories as IEnumerable<CategoryDto>) ?? Enumerable.Empty<CategoryDto>();
+    var whiteCoatCategory = categories.FirstOrDefault(c => c.Name.Trim().Equals("Design Your White Coat", StringComparison.OrdinalIgnoreCase));
+    int? whiteCoatProductId = ViewBag.WhiteCoatProductId;
+
+    string CategoryIcon(string name) => name.Trim().ToLowerInvariant() switch
+    {
+        "engineering preparation" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z\"/></svg>",
+        "electronics" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"4\" y=\"9\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M9 9V5a3 3 0 0 1 6 0v4\"/></svg>",
+        "medicine" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z\"/><path d=\"M12 8v6M9 11h6\"/></svg>",
+        "pharmacy" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><rect x=\"5\" y=\"3\" width=\"14\" height=\"18\" rx=\"2\"/><path d=\"M9 8h6M12 8v8M9 14h6\"/></svg>",
+        "dentistry" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M12 5c-1.5-1.5-3.5-2-5-1-2 1.3-2 4-1.5 6.5.4 2 1 5 1.7 7 .4 1.2 1 2.5 2.3 2.5 1.5 0 1.5-2.5 2-4.5.2-.8.7-1.5 1.5-1.5s1.3.7 1.5 1.5c.5 2 .5 4.5 2 4.5 1.3 0 1.9-1.3 2.3-2.5.7-2 1.3-5 1.7-7 .5-2.5.5-5.2-1.5-6.5-1.5-1-3.5-.5-5 1Z\"/></svg>",
+        "veterinary medicine" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"14\" r=\"4.5\"/><path d=\"M8 8c-1.5-2-1-4.5.5-5.3C10 2 11.5 3.5 11 5.5M16 8c1.5-2 1-4.5-.5-5.3C14 2 12.5 3.5 13 5.5\"/></svg>",
+        "nursing" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M6 3h5v5H6zM6 3v11a6 6 0 0 0 12 0V9h-6\"/><path d=\"M8.5 5.5h0M13 9h4\"/></svg>",
+        "physical therapy" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"5\" r=\"2\"/><path d=\"M12 7v5l-4 8M12 12l4 8M8 12h8\"/></svg>",
+        "design your white coat" => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M9 4l3 2 3-2 3 3-2 2v11H8V9L6 7z\"/></svg>",
+        _ => "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><circle cx=\"12\" cy=\"12\" r=\"9\"/></svg>"
+    };
+    }
+<!-- Hero -->
+<section class="hero">
+    <div class="container hero-inner">
+        <span class="hero-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> Premium Academic Uniforms</span>
+        <h1>Look the part, from day one on the ward.</h1>
+        <p>Practora fits students and professionals across engineering, medicine, pharmacy, dentistry, and more — with white coats you can fully customize and make your own.</p>
+        <div class="hero-cta-row">
+            <a asp-controller="Shop" asp-action="Index" class="btn btn-primary-lg">Shop All Products</a>
+            <a href="#whitecoat-customizer" class="btn btn-outline-lg">Design Your White Coat</a>
+        </div>
+    </div>
+</section>
+
+<!-- Promo -->
+<div class="promo-strip">
+    <span class="icon-badge" style="width:26px; height:26px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v10H4V12M2 7h20v5H2zM12 7v15M12 7h10M12 7H2"/></svg></span> Get <strong>10% Off</strong> Your First Order — use code <strong>WELCOME10</strong> at checkout
+</div>
+
+<!-- Shipping Info Strip -->
+<div class="shipping-strip">
+    <span class="icon-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 18h22l-3-7H15L11 2H5l-1 9H1zm11 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM5 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span>
+    <div class="shipping-strip-text">
+        <strong>Special Shipping Offer</strong>
+        <span>التوصيل بـ 9 جنيه فقط لأهالي الزقازيق، وشحن مجاني لأي أوردر أعلى من 1000 جنيه لأي محافظة في مصر</span>
+    </div>
+</div>
+
+<!-- Category Cards -->
+<section class="section">
+    <div class="container">
+        <div class="shop-header" style="text-align:center;margin-bottom:32px;">
+            <h2 class="section-title">Shop by Faculty</h2>
+            <p style="color:var(--text-muted)">Find the right fit for your program — or design a coat that's entirely your own.</p>
+        </div>
+        <div class="categories-grid">
+            @foreach (var cat in categories.OrderBy(c => c.SortOrder))
+            {
+                var isDesignCard = cat.Name.Trim().Equals("Design Your White Coat", StringComparison.OrdinalIgnoreCase);
+                <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@cat.Id"
+                   class="category-card @(isDesignCard ? "cta-card" : "")">
+                    @if (!string.IsNullOrEmpty(cat.ImageUrl))
+                    {
+                        <img src="@cat.ImageUrl" alt="@cat.Name" class="cat-img" />
+                    }
+                    else
+                    {
+                        <div class="cat-icon">@Html.Raw(CategoryIcon(cat.Name))</div>
+                    }
+                    <h3>@cat.Name</h3>
+                    <span>@(isDesignCard ? "Start customizing →" : $"{cat.ProductCount} {(cat.ProductCount == 1 ? "product" : "products")}")</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- White Coat Customizer Teaser -->
+<section class="section section-alt" id="whitecoat-customizer" style="background:var(--bg-secondary);scroll-margin-top:calc(var(--nav-h) + 16px);">
+    <div class="container">
+        <div class="customizer-layout">
+            <div class="wc-preview-column">
+                <div class="wc-preview-stage">
+                    <div class="wc-preview-image-wrap">
+                        <img src="~/images/balto.png" alt="White coat preview" class="wc-preview-base" id="teaserCoatImg" />
+                        <div class="wc-preview-text" id="teaserTextPreview" style="top:38%; left:50%; transform:translateX(-50%);"></div>
+                    </div>
+                </div>
+                <p class="wc-tilt-hint">Live preview — type your details on the right</p>
+            </div>
+
+            <div class="wc-options-column">
+                <a asp-controller="WhiteCoat" asp-action="Customize" asp-route-productId="@whiteCoatProductId"
+                   style="background-color: #2563eb; color: white; font-weight: 700; padding: 12px 32px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: background-color 0.2s; border: 1px solid rgba(96, 165, 250, 0.3); cursor: pointer; display: inline-block; text-decoration: none; margin-bottom: 16px;"
+                   onmouseover="this.style.backgroundColor='#1d4ed8'"
+                   onmouseout="this.style.backgroundColor='#2563eb'">
+                    Design Your White Coat
+                </a>
+
+                <h2 class="section-title" style="margin:14px 0 6px">مصمم بعناية</h2>
+                <p style="color:var(--text-muted);margin-bottom:20px; font-size: 1.1rem; line-height: 1.6;">
+                    اصنع البلطو الذي يرافقك طوال مسيرتك.. صُمم بعناية ودقة ليعيش معك كل لحظة نجاح بحب.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    (function () {
+        // Brand statement section - simplified and kept for structural integrity if needed later.
+    })();
+</script>
+}

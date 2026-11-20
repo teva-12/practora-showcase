@@ -1,0 +1,202 @@
+@model ShopElegance.Core.DTOs.CartDto
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<div class="cart-page">
+    <div class="container">
+        <h1 class="page-title mb-4">Shopping Cart <span style="font-size:1rem;font-weight:400;color:var(--text-muted)">(@Model.ItemCount items)</span></h1>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" data-auto-dismiss>@TempData["SuccessMessage"]</div>
+        }
+
+        @if (!Model.Items.Any())
+        {
+            <div class="empty-state" style="padding:80px 0">
+                <div class="empty-icon">🛒</div>
+                <h3>Your cart is empty</h3>
+                <p>Looks like you haven't added anything yet.</p>
+                <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">Start Shopping</a>
+            </div>
+        }
+        else
+        {
+            <div class="cart-layout">
+                <!-- Cart Items -->
+                <div>
+                    <table class="cart-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="cart-product">
+                                            @if (!string.IsNullOrEmpty(item.ProductImageUrl))
+                                            {
+                                                <img src="@item.ProductImageUrl" alt="@item.ProductName" class="cart-product-img" />
+                                            }
+                                            else
+                                            {
+                                                <div class="cart-product-img" style="background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:1.5rem">✦</div>
+                                            }
+                                            <div>
+                                                <div class="cart-product-name">
+                                                    <a asp-controller="Shop" asp-action="Product" asp-route-slug="@item.ProductSlug">@item.ProductName</a>
+                                                </div>
+                                                @if (item.IsDigital)
+                                                {
+                                                    <div class="cart-product-meta">Digital Download</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.UnitPrice.ToString("C")</td>
+                                    <td>
+                                        <div class="cart-qty">
+                                            <button class="cart-qty-btn" data-delta="-1" type="button">−</button>
+                                            <input class="cart-qty-input" type="number"
+                                                   value="@item.Quantity" min="1" max="@item.StockQuantity"
+                                                   data-item-id="@item.Id" />
+                                            <button class="cart-qty-btn" data-delta="1" type="button">+</button>
+                                        </div>
+                                    </td>
+                                    <td data-item-total="@item.Id"><strong>@item.TotalPrice.ToString("C")</strong></td>
+                                    <td>
+                                        <form asp-controller="Cart" asp-action="Remove" method="post">
+                                            <input type="hidden" name="cartItemId" value="@item.Id" />
+                                            <button type="submit" class="cart-remove">✕ Remove</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px">
+                        <a asp-controller="Shop" asp-action="Index" class="btn btn-outline">← Continue Shopping</a>
+                        <form asp-controller="Cart" asp-action="Clear" method="post">
+                            <button type="submit" class="btn btn-outline" style="color:#e17055;border-color:#e17055">Clear Cart</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Cart Summary -->
+                <div class="cart-summary">
+                    <h3>Order Summary</h3>
+
+                    <div class="shipping-progress" id="shippingProgress" data-threshold="50" data-subtotal="@Model.SubTotal">
+                        <div class="shipping-progress-label">Add more to unlock free shipping</div>
+                        <div class="shipping-progress-track"><div class="shipping-progress-fill" style="width:0%"></div></div>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="cartSubTotal" data-raw="@Model.SubTotal">@Model.SubTotal.ToString("C")</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>Calculated at checkout</span>
+                    </div>
+
+                    <!-- Discount Row -->
+                    <div class="summary-row" id="discountRow" style="color:var(--brand-light); display:none">
+                        <span>Discount</span>
+                        <span id="discountAmount">-EGP 0.00</span>
+                    </div>
+
+                    <!-- Estimated Total -->
+                    <div class="summary-row total">
+                        <span>Estimated Total</span>
+                        <span id="cartTotal">@Model.SubTotal.ToString("C")</span>
+                    </div>
+
+                    <!-- Coupon Form -->
+                    <div class="coupon-form">
+                        <input type="text" id="couponCode" class="coupon-input" placeholder="Coupon code" />
+                        <button id="applyCoupon" class="btn btn-outline btn-sm" type="button">Apply</button>
+                    </div>
+
+                    <!-- Hidden Inputs for Form Submission/State -->
+                    <input type="hidden" id="hiddenCouponCode" name="couponCode" />
+                    <input type="hidden" id="hiddenDiscount" value="0" />
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary btn-checkout">
+                            Proceed to Checkout →
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Checkout"
+                           class="btn btn-primary btn-checkout">
+                            Proceed to Checkout →
+                        </a>
+                    }
+
+                    <div style="margin-top:16px;text-align:center;font-size:0.75rem;color:var(--text-muted)">
+                        🔒 Secure checkout with SSL encryption
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#applyCoupon').click(function(e) {
+                e.preventDefault();
+
+                var code = $('#couponCode').val().trim();
+                if (!code) return;
+
+                $.ajax({
+                    url: '/Cart/ApplyCoupon',
+                    type: 'POST',
+                    data: { couponCode: code },
+                    success: function(response) {
+                        if (response.success) {
+                            var subtotal = parseFloat($('#cartSubTotal').attr('data-raw')) || 0;
+                            var discount = parseFloat(response.discountAmount) || 0;
+                            var newTotal = Math.Max(0, subtotal - discount);
+
+                            $('#discountAmount').text('- EGP ' + discount.toFixed(2));
+                            $('#discountRow').slideDown();
+                            $('#cartTotal').text('EGP ' + newTotal.toFixed(2));
+                            $('#hiddenDiscount').val(discount);
+                            $('#hiddenCouponCode').val(code);
+
+                            if (typeof showToast === "function") {
+                                showToast("Success", response.message, "success");
+                            } else {
+                                alert(response.message);
+                            }
+                        } else {
+                            if (typeof showToast === "function") {
+                                showToast("Error", response.message, "error");
+                            } else {
+                                alert(response.message);
+                            }
+                        }
+                    },
+                    error: function() {
+                        alert('An error occurred while applying the coupon.');
+                    }
+                });
+            });
+        });
+    </script>
+}

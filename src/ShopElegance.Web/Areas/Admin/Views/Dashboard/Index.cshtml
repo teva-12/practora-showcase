@@ -1,0 +1,241 @@
+@model ShopElegance.Core.DTOs.DashboardStatsDto
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard">
+    <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <span class="page-date">@DateTime.Now.ToString("dddd, MMMM d, yyyy")</span>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-revenue">$</div>
+            <div class="kpi-body">
+                <span class="kpi-label">Total Revenue</span>
+                <strong class="kpi-value" data-countup>@Model.TotalRevenue.ToString("C")</strong>
+                <span class="kpi-trend @(Model.RevenueGrowthPercent >= 0 ? "up" : "down")">
+                    @(Model.RevenueGrowthPercent >= 0 ? "▲" : "▼") @Math.Abs(Model.RevenueGrowthPercent)% this month
+                </span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-orders">📦</div>
+            <div class="kpi-body">
+                <span class="kpi-label">Total Orders</span>
+                <strong class="kpi-value" data-countup>@Model.TotalOrders.ToString("N0")</strong>
+                <span class="kpi-trend @(Model.OrdersGrowthCount >= 0 ? "up" : "down")">
+                    @(Model.OrdersGrowthCount >= 0 ? "▲" : "▼") @Math.Abs(Model.OrdersGrowthCount) this month
+                </span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon kpi-customers">👥</div>
+            <div class="kpi-body">
+                <span class="kpi-label">Customers</span>
+                <strong class="kpi-value" data-countup>@Model.TotalCustomers.ToString("N0")</strong>
+                <span class="kpi-trend up">▲ Active accounts</span>
+            </div>
+        </div>
+        <div class="kpi-card @(Model.LowStockCount > 0 ? "kpi-alert" : "")">
+            <div class="kpi-icon kpi-products">📋</div>
+            <div class="kpi-body">
+                <span class="kpi-label">Products</span>
+                <strong class="kpi-value" data-countup>@Model.TotalProducts.ToString("N0")</strong>
+                @if (Model.LowStockCount > 0)
+                {
+                    <span class="kpi-trend down">⚠ @Model.LowStockCount low stock</span>
+                }
+                else
+                {
+                    <span class="kpi-trend up">✓ All well-stocked</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-grid">
+        <div class="chart-card chart-lg">
+            <div class="chart-header">
+                <h3>Revenue This Year</h3>
+                <span class="chart-year">@DateTime.Now.Year</span>
+            </div>
+            <canvas id="revenueChart" height="280"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-header"><h3>Orders by Status</h3></div>
+            <canvas id="statusChart" height="280"></canvas>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="tables-grid">
+        <!-- Recent Orders -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Recent Orders</h3>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="table-link">View All →</a>
+            </div>
+            @if (Model.RecentOrders.Any())
+            {
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.RecentOrders)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Detail"
+                                           asp-route-id="@order.Id" class="order-link">@order.OrderNumber</a>
+                                    </td>
+                                    <td>@order.CustomerName</td>
+                                    <td><span class="status-pill status-@order.Status.ToLower()">@order.Status</span></td>
+                                    <td>@order.Total.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="table-empty">No orders yet.</p>
+            }
+        </div>
+
+        <!-- Top Products -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>Top Products</h3>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="table-link">View All →</a>
+            </div>
+            @if (Model.TopProducts.Any())
+            {
+                <div class="top-products-list">
+                    @foreach (var product in Model.TopProducts)
+                    {
+                        <div class="top-product-item">
+                            <div class="top-product-img">
+                                @if (!string.IsNullOrEmpty(product.PrimaryImageUrl))
+                                {
+                                    <img src="@product.PrimaryImageUrl" alt="@product.Name" />
+                                }
+                                else
+                                {
+                                    <span>✦</span>
+                                }
+                            </div>
+                            <div class="top-product-info">
+                                <strong>@product.Name</strong>
+                                <span>@product.SalesCount sales · @product.Price.ToString("C")</span>
+                            </div>
+                            <div class="top-product-stock @(product.StockQuantity <= 5 ? "low" : "")">
+                                @product.StockQuantity left
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.LowStockWhiteCoatVariants is IEnumerable<ShopElegance.Core.DTOs.WhiteCoatVariantListDto> lowStockVariants && lowStockVariants.Any())
+    {
+        <div class="table-card" style="margin-top:20px">
+            <div class="table-header">
+                <h3>Low Stock White Coat Variants</h3>
+                <a asp-area="Admin" asp-controller="WhiteCoatVariants" asp-action="Index" asp-route-lowStockOnly="true" class="table-link">View All →</a>
+            </div>
+            <div class="top-products-list">
+                @foreach (var variant in lowStockVariants)
+                {
+                    <div class="top-product-item">
+                        <div class="top-product-img">
+                            @if (!string.IsNullOrEmpty(variant.PrimaryImageUrl))
+                            {
+                                <img src="@variant.PrimaryImageUrl" alt="@variant.SKU" />
+                            }
+                            else
+                            {
+                                <span>🧥</span>
+                            }
+                        </div>
+                        <div class="top-product-info">
+                            <strong>@variant.ProductName — @variant.Size / @variant.Color</strong>
+                            <span><code>@variant.SKU</code></span>
+                        </div>
+                        <div class="top-product-stock low">
+                            @variant.StockQuantity left
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const revenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RevenueByMonth));
+const statusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.OrdersByStatus));
+
+const palette = ['#6c5ce7','#a29bfe','#fd79a8','#fdcb6e','#00b894','#0984e3','#e17055','#55efc4','#fab1a0','#b2bec3','#636e72','#2d3436'];
+
+new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+        labels: Object.keys(revenueData),
+        datasets: [{
+            label: 'Revenue ($)',
+            data: Object.values(revenueData),
+            borderColor: '#6c5ce7',
+            backgroundColor: 'rgba(108,92,231,0.08)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#6c5ce7',
+            pointRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' },
+                 ticks: { callback: v => '$' + v.toLocaleString() } },
+            x: { grid: { display: false } }
+        }
+    }
+});
+
+new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: palette,
+            borderWidth: 0,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: { legend: { position: 'bottom', labels: { padding: 16, boxWidth: 12 } } }
+    }
+});
+</script>
+}

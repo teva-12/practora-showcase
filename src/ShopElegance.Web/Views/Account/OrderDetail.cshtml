@@ -1,0 +1,164 @@
+@model ShopElegance.Core.DTOs.OrderDto
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<div style="padding:40px 0 80px">
+    <div class="container" style="max-width:860px">
+        <div class="breadcrumb mb-4">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span>›</span>
+            <a asp-action="Orders">My Orders</a>
+            <span>›</span>
+            <span>@Model.OrderNumber</span>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+            <div>
+                <h1 style="font-family:var(--font-serif);font-size:1.8rem;margin-bottom:4px">@Model.OrderNumber</h1>
+                <span style="color:var(--text-muted);font-size:0.875rem">Placed @Model.CreatedAt.ToString("MMMM d, yyyy")</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <a asp-action="Invoice" asp-route-orderNumber="@Model.OrderNumber" class="btn btn-outline btn-sm" target="_blank">🖨 Invoice</a>
+                <span class="status-pill status-@Model.Status.ToLower()" style="font-size:0.875rem;padding:6px 16px">@Model.Status</span>
+            </div>
+        </div>
+
+        <!-- Items -->
+        <div class="account-card" style="margin-bottom:20px">
+            <h2 class="account-card-title" style="font-size:1.1rem">Items</h2>
+            @foreach (var item in Model.Items)
+            {
+                <div style="padding:14px 0;border-bottom:1px solid var(--border-light)">
+                    <div style="display:flex;gap:14px">
+                        <div style="font-size:0.875rem;flex:1">
+                            <strong>@item.ProductName</strong>
+                            @if (item.IsDigital && !string.IsNullOrEmpty(item.DownloadUrl))
+                            {
+                                <br/><a href="@item.DownloadUrl" style="color:var(--brand-light);font-size:0.8rem">⬇ Download</a>
+                            }
+                        </div>
+                        <span style="font-size:0.8rem;color:var(--text-muted)">×@item.Quantity</span>
+                        <strong style="font-size:0.875rem">@item.TotalPrice.ToString("C")</strong>
+                    </div>
+                    @if (item.Customization != null)
+                    {
+                        <div style="margin-top:10px;padding:12px;background:var(--bg-secondary);border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text-secondary)">
+                            <strong style="display:block;margin-bottom:6px;color:var(--text-primary)">🧵 Customization Details</strong>
+                            @if (item.Customization.EmbroideryEnabled)
+                            {
+                                <div>Embroidered: @(item.Customization.StudentName ?? item.Customization.DoctorName)</div>
+                                @if (!string.IsNullOrEmpty(item.Customization.Faculty))
+                                {
+                                    <div>Faculty: @item.Customization.Faculty</div>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Customization.Department))
+                                {
+                                    <div>Department: @item.Customization.Department</div>
+                                }
+                                @if (item.Customization.GraduationYear.HasValue)
+                                {
+                                    <div>Graduation Year: @item.Customization.GraduationYear</div>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Customization.EmbroideryFontName))
+                                {
+                                    <div>Font: @item.Customization.EmbroideryFontName</div>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Customization.EmbroideryPosition))
+                                {
+                                    <div>Position: @item.Customization.EmbroideryPosition</div>
+                                }
+                                @if (!string.IsNullOrEmpty(item.Customization.EmbroideryTextColor))
+                                {
+                                    <div>Text Color: <span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:@item.Customization.EmbroideryTextColor;vertical-align:middle;border:1px solid var(--border)"></span> @item.Customization.EmbroideryTextColor</div>
+                                }
+                            }
+                            @if (!string.IsNullOrEmpty(item.Customization.LogoType))
+                            {
+                                <div>Logo: @item.Customization.LogoType</div>
+                            }
+                            @if (item.Customization.PriceAdjustment > 0)
+                            {
+                                <div>Customization Fee: @item.Customization.PriceAdjustment.ToString("C")</div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            <div style="margin-top:16px">
+                <div class="summary-row" style="font-size:0.875rem"><span>Subtotal</span><span>@Model.SubTotal.ToString("C")</span></div>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="summary-row" style="font-size:0.875rem;color:var(--brand-light)"><span>Discount</span><span>-@Model.DiscountAmount.ToString("C")</span></div>
+                }
+                <div class="summary-row" style="font-size:0.875rem"><span>Shipping</span><span>@Model.ShippingCost.ToString("C")</span></div>
+                <div class="summary-row" style="font-size:0.875rem"><span>Tax</span><span>@Model.TaxAmount.ToString("C")</span></div>
+                <div class="summary-row total"><span>Total</span><span>@Model.Total.ToString("C")</span></div>
+            </div>
+        </div>
+
+        <!-- Shipping + Tracking -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+            <div class="account-card">
+                <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:14px">Shipping Address</h3>
+                <div style="font-size:0.875rem;color:var(--text-secondary);line-height:1.9">
+                    @Model.ShippingAddress.FirstName @Model.ShippingAddress.LastName<br/>
+                    @Model.ShippingAddress.AddressLine1<br/>
+                    @if (!string.IsNullOrEmpty(Model.ShippingAddress.AddressLine2))
+                    {
+                        @Model.ShippingAddress.AddressLine2<br/>
+                    }
+                    @Model.ShippingAddress.City, @Model.ShippingAddress.State @Model.ShippingAddress.PostalCode<br/>
+                    @Model.ShippingAddress.Country
+                </div>
+            </div>
+            <div class="account-card">
+                <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:14px">Tracking</h3>
+                @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                {
+                    <p style="font-size:0.875rem"><strong>Tracking #:</strong> @Model.TrackingNumber</p>
+                }
+                @if (Model.ShippedAt.HasValue)
+                {
+                    <p style="font-size:0.8rem;color:var(--text-muted)">Shipped: @Model.ShippedAt.Value.ToString("MMM d, yyyy")</p>
+                }
+                @if (Model.DeliveredAt.HasValue)
+                {
+                    <p style="font-size:0.8rem;color:#00b894">Delivered: @Model.DeliveredAt.Value.ToString("MMM d, yyyy")</p>
+                }
+                @if (string.IsNullOrEmpty(Model.TrackingNumber))
+                {
+                    <p style="font-size:0.875rem;color:var(--text-muted)">Tracking info will appear here once your order ships.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Status History -->
+        @if (Model.StatusHistory.Any())
+        {
+            <div class="account-card">
+                <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:16px">Order History</h3>
+                <div class="history-list">
+                    @foreach (var h in Model.StatusHistory)
+                    {
+                        <div class="history-item">
+                            <div class="history-dot" style="background:var(--brand-light)">@h.Status.First()</div>
+                            <div class="history-body">
+                                <div class="history-status">@h.Status</div>
+                                @if (!string.IsNullOrEmpty(h.Comment))
+                                {
+                                    <div class="history-comment">@h.Comment</div>
+                                }
+                                <div class="history-date">@h.CreatedAt.ToString("MMM d, yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div style="margin-top:24px">
+            <a asp-action="Orders" class="btn btn-outline">← Back to Orders</a>
+        </div>
+    </div>
+</div>

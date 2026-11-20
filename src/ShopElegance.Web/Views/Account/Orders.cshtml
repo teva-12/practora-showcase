@@ -1,0 +1,69 @@
+@model IEnumerable<ShopElegance.Core.DTOs.OrderDto>
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<div style="padding:40px 0 80px">
+    <div class="container">
+        <div class="account-layout">
+            <aside>
+                <nav class="account-nav">
+                    <a asp-action="Profile" class="account-nav-item">👤 Profile</a>
+                    <a asp-action="Orders" class="account-nav-item active">📦 My Orders</a>
+                    <a asp-controller="Wishlist" asp-action="Index" class="account-nav-item">♡ Wishlist</a>
+                    <a asp-action="ChangePassword" class="account-nav-item">🔑 Change Password</a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="account-nav-item">🚪 Log Out</button>
+                    </form>
+                </nav>
+            </aside>
+            <div>
+                <div class="account-card">
+                    <h2 class="account-card-title">My Orders</h2>
+                    @if (!Model.Any())
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">📦</div>
+                            <h3>No orders yet</h3>
+                            <p>Your order history will appear here after your first purchase.</p>
+                            <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">Start Shopping</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>Order</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model)
+                                    {
+                                        <tr>
+                                            <td><strong class="order-number-link">@order.OrderNumber</strong></td>
+                                            <td style="color:var(--text-muted);font-size:0.875rem">@order.CreatedAt.ToString("MMM d, yyyy")</td>
+                                            <td style="font-size:0.875rem">@order.Items.Count item@(order.Items.Count != 1 ? "s" : "")</td>
+                                            <td><strong>@order.Total.ToString("C")</strong></td>
+                                            <td><span class="status-pill status-@order.Status.ToLower()">@order.Status</span></td>
+                                            <td>
+                                                <a asp-action="OrderDetail" asp-route-orderNumber="@order.OrderNumber"
+                                                   style="color:var(--brand-light);font-size:0.875rem;font-weight:500">View →</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

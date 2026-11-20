@@ -1,0 +1,81 @@
+@model ShopElegance.Web.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div style="padding:40px 0 80px">
+    <div class="container">
+        <div class="account-layout">
+            <!-- Sidebar Nav -->
+            <aside>
+                <nav class="account-nav">
+                    <a asp-action="Profile" class="account-nav-item active">👤 Profile</a>
+                    <a asp-action="Orders" class="account-nav-item">📦 My Orders</a>
+                    <a asp-controller="Wishlist" asp-action="Index" class="account-nav-item">♡ Wishlist</a>
+                    <a asp-action="ChangePassword" class="account-nav-item">🔑 Change Password</a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="account-nav-item">🚪 Log Out</button>
+                    </form>
+                </nav>
+            </aside>
+
+            <!-- Content -->
+            <div>
+                <div class="account-header" data-reveal>
+                    <div class="account-avatar">@(!string.IsNullOrEmpty(Model.FirstName) ? Model.FirstName.Substring(0,1).ToUpper() : "U")</div>
+                    <div class="account-header-info">
+                        <h2>@Model.FirstName @Model.LastName</h2>
+                        <span>@Model.Email</span>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success" data-auto-dismiss>@TempData["SuccessMessage"]</div>
+                }
+
+                <div class="account-card">
+                    <h2 class="account-card-title">My Profile</h2>
+
+                    <form asp-action="Profile" method="post">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="FirstName">First Name</label>
+                                <input asp-for="FirstName" class="form-control" />
+                                <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="LastName">Last Name</label>
+                                <input asp-for="LastName" class="form-control" />
+                                <span asp-validation-for="LastName" class="field-validation-error"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="Email">Email Address</label>
+                            <input asp-for="Email" class="form-control" type="email" readonly
+                                   style="background:var(--bg-secondary);cursor:not-allowed" />
+                            <small style="color:var(--text-muted);font-size:0.78rem">Email cannot be changed. Contact support if needed.</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="PhoneNumber">Phone Number (optional)</label>
+                                <input asp-for="PhoneNumber" class="form-control" type="tel" />
+                                <span asp-validation-for="PhoneNumber" class="field-validation-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="DateOfBirth">Date of Birth (optional)</label>
+                                <input asp-for="DateOfBirth" class="form-control" type="date" />
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

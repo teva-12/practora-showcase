@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] != null ? $"{ViewData["Title"]} | Admin" : "Practora Admin")</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/admin.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-body">
+<div class="top-loading-bar" id="topLoadingBar"></div>
+
+<div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-logo">
+                <img src="~/images/practora-logo.png" alt="Practora" style="height: 30px; width: auto;" />
+            </a>
+            <span class="sidebar-badge">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-label">Overview</span>
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Dashboard
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Catalog</span>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Products" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+                    Products
+                </a>
+                <a asp-area="Admin" asp-controller="Categories" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    Categories
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">White Coats</span>
+                <a asp-area="Admin" asp-controller="WhiteCoatVariants" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "WhiteCoatVariants" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v6c0 5 4 9 9 9s9-4 9-9V7z"/></svg>
+                    Variants
+                </a>
+                <a asp-area="Admin" asp-controller="EmbroideryFonts" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "EmbroideryFonts" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 16l6-12 6 12M8 12h8"/></svg>
+                    Embroidery Fonts
+                </a>
+                <a asp-area="Admin" asp-controller="Logos" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Logos" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
+                    Logos
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Sales</span>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Orders" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                    Orders
+                </a>
+                <a asp-area="Admin" asp-controller="Coupons" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Coupons" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    Coupons
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">Content</span>
+                <a asp-area="Admin" asp-controller="Reviews" asp-action="Index"
+                   class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Reviews" ? "active" : "")">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Reviews
+                </a>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">System</span>
+                <a href="/" class="nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    View Store
+                </a>
+                <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="nav-item nav-logout">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Sign Out
+                    </button>
+                </form>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <header class="admin-header">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="admin-header-right">
+                <button class="btn-icon theme-toggle" id="themeToggle">☀</button>
+                <div class="admin-user">
+                    <span>@User.Identity?.Name?.Split('@')[0]</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+            }
+
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin.js" asp-append-version="true"></script>
+<script src="~/js/premium-enhancements.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

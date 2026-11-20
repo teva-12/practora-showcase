@@ -1,0 +1,305 @@
+@model ShopElegance.Web.ViewModels.ShopViewModel
+@{
+    ViewData["Title"] = Model.CurrentCategoryName ?? "Shop All Products";
+}
+
+<div class="shop-page">
+    <!-- Shop Header -->
+    <div class="shop-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a asp-controller="Home" asp-action="Index">Home</a>
+                <span>›</span>
+                <span>@(Model.CurrentCategoryName ?? "Shop")</span>
+            </div>
+            <h1 class="page-title">@(Model.CurrentCategoryName ?? "All Products")</h1>
+            <p class="shop-count">@Model.Products.TotalCount @(Model.Products.TotalCount == 1 ? "product" : "products")</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="shop-layout">
+            <!-- Sidebar Filters -->
+            <aside class="shop-sidebar">
+                <div class="filter-panel">
+                    <div class="filter-header">
+                        <h3>Filters</h3>
+                        @if (Model.Filter.CategoryId.HasValue || !string.IsNullOrEmpty(Model.Filter.Search)
+                            || Model.Filter.MinPrice.HasValue || Model.Filter.MaxPrice.HasValue
+                            || Model.Filter.InStock.HasValue || !string.IsNullOrEmpty(Model.Filter.ProductType))
+                        {
+                            <a asp-controller="Shop" asp-action="Index" class="filter-clear">Clear All</a>
+                        }
+                    </div>
+
+                    <form asp-controller="Shop" asp-action="Index" method="get" id="filterForm">
+                        @{
+                            bool hasActiveFilters = Model.Filter.CategoryId.HasValue || !string.IsNullOrEmpty(Model.Filter.Search)
+                                || Model.Filter.MinPrice.HasValue || Model.Filter.MaxPrice.HasValue
+                                || Model.Filter.InStock.HasValue || !string.IsNullOrEmpty(Model.Filter.ProductType);
+                        }
+                        @if (hasActiveFilters)
+                        {
+                            <div class="active-filters">
+                                @if (Model.Filter.CategoryId.HasValue)
+                                {
+                                    var catName = Model.Categories.FirstOrDefault(c => c.Id == Model.Filter.CategoryId)?.Name;
+                                    <span class="active-filter-chip">@catName <a asp-controller="Shop" asp-action="Index" asp-route-search="@Model.Filter.Search" asp-route-sortBy="@Model.Filter.SortBy">✕</a></span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Filter.ProductType))
+                                {
+                                    <span class="active-filter-chip">@Model.Filter.ProductType <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Filter.CategoryId" asp-route-search="@Model.Filter.Search" asp-route-sortBy="@Model.Filter.SortBy">✕</a></span>
+                                }
+                                @if (Model.Filter.MinPrice.HasValue || Model.Filter.MaxPrice.HasValue)
+                                {
+                                    <span class="active-filter-chip">
+                                        $@(Model.Filter.MinPrice?.ToString("0") ?? "0")–@(Model.Filter.MaxPrice?.ToString("0") ?? "∞")
+                                        <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Filter.CategoryId" asp-route-productType="@Model.Filter.ProductType" asp-route-search="@Model.Filter.Search" asp-route-sortBy="@Model.Filter.SortBy">✕</a>
+                                    </span>
+                                }
+                                @if (Model.Filter.InStock == true)
+                                {
+                                    <span class="active-filter-chip">In Stock <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Filter.CategoryId" asp-route-productType="@Model.Filter.ProductType" asp-route-search="@Model.Filter.Search" asp-route-sortBy="@Model.Filter.SortBy">✕</a></span>
+                                }
+                            </div>
+                        }
+                        <!-- Categories -->
+                        <div class="filter-group">
+                            <h4 class="filter-title">Categories</h4>
+                            <div class="filter-options">
+                                <label class="filter-option @(Model.Filter.CategoryId == null ? "active" : "")">
+                                    <input type="radio" name="categoryId" value=""
+                                    @(Model.Filter.CategoryId == null ? "checked" : "")
+                                           onchange="this.form.submit()" />
+                                    <span class="radio-dot"></span>
+                                    <span>All Categories</span>
+                                </label>
+                                @foreach (var cat in Model.Categories)
+                                {
+                                    <label class="filter-option @(Model.Filter.CategoryId == cat.Id ? "active" : "")">
+                                        <input type="radio" name="categoryId" value="@cat.Id"
+                                        @(Model.Filter.CategoryId == cat.Id ? "checked" : "")
+                                               onchange="this.form.submit()" />
+                                        <span class="radio-dot"></span>
+                                        <span>@cat.Name <em>(@cat.ProductCount)</em></span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Product Type -->
+                        <div class="filter-group">
+                            <h4 class="filter-title">Type</h4>
+                            <div class="filter-options">
+                                @foreach (var type in new[] { "", "Physical", "Digital", "Both" })
+                                {
+                                    <label class="filter-option @(Model.Filter.ProductType == type ? "active" : "")">
+                                        <input type="radio" name="productType" value="@type"
+                                        @(Model.Filter.ProductType == type ? "checked" : "")
+                                               onchange="this.form.submit()" />
+                                        <span class="radio-dot"></span>
+                                        <span>@(string.IsNullOrEmpty(type) ? "All Types" : type)</span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="filter-group">
+                            <h4 class="filter-title">Price Range</h4>
+                            <div class="price-inputs">
+                                <input type="number" name="minPrice" placeholder="Min" min="0"
+                                       value="@Model.Filter.MinPrice" class="price-input" />
+                                <span>–</span>
+                                <input type="number" name="maxPrice" placeholder="Max" min="0"
+                                       value="@Model.Filter.MaxPrice" class="price-input" />
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-outline mt-2">Apply</button>
+                        </div>
+
+                        <!-- Availability -->
+                        <div class="filter-group">
+                            <h4 class="filter-title">Availability</h4>
+                            <label class="filter-checkbox">
+                                <input type="checkbox" name="inStock" value="true"
+                                @(Model.Filter.InStock == true ? "checked" : "")
+                                       onchange="this.form.submit()" />
+                                <span>In Stock Only</span>
+                            </label>
+                        </div>
+
+                        <input type="hidden" name="search" value="@Model.Filter.Search" />
+                        <input type="hidden" name="sortBy" value="@Model.Filter.SortBy" />
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="shop-content">
+                <!-- Sort & View -->
+                <div class="shop-toolbar">
+                    <div class="shop-results">
+                        Showing @((Model.Products.Page - 1) * Model.Products.PageSize + 1)–@Math.Min(Model.Products.Page * Model.Products.PageSize, Model.Products.TotalCount) of @Model.Products.TotalCount
+                    </div>
+                    <form asp-controller="Shop" asp-action="Index" method="get" class="sort-form">
+                        <input type="hidden" name="categoryId" value="@Model.Filter.CategoryId" />
+                        <input type="hidden" name="search" value="@Model.Filter.Search" />
+                        <input type="hidden" name="minPrice" value="@Model.Filter.MinPrice" />
+                        <input type="hidden" name="maxPrice" value="@Model.Filter.MaxPrice" />
+                        <input type="hidden" name="inStock" value="@Model.Filter.InStock" />
+                        <input type="hidden" name="productType" value="@Model.Filter.ProductType" />
+                        <select name="sortBy" class="sort-select" onchange="this.form.submit()">
+                            <option value="newest" selected="@(Model.Filter.SortBy == "newest")">Newest</option>
+                            <option value="bestselling" selected="@(Model.Filter.SortBy == "bestselling")">Best Selling</option>
+                            <option value="rating" selected="@(Model.Filter.SortBy == "rating")">Top Rated</option>
+                            <option value="price-asc" selected="@(Model.Filter.SortBy == "price-asc")">Price: Low to High</option>
+                            <option value="price-desc" selected="@(Model.Filter.SortBy == "price-desc")">Price: High to Low</option>
+                            <option value="name-asc" selected="@(Model.Filter.SortBy == "name-asc")">Name A–Z</option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Products Grid -->
+                @if (Model.Products.Items.Any())
+                {
+                    <div class="products-grid" data-reveal-stagger>
+                        @foreach (var product in Model.Products.Items)
+                        {
+                            <partial name="_ProductCard" model="product" />
+                        }
+                    </div>
+
+                    <!-- Custom Request Banner (عند وجود منتجات) -->
+                    <div class="custom-request-card my-4 p-4 rounded-3 shadow-sm" dir="rtl">
+                        <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3 text-center text-lg-start">
+                            <div class="request-content">
+                                <h5 class="fw-bold mb-2 request-title">
+                                    <i class="bi bi-search-heart me-2"></i>مش لاقي المنتج اللي بتدور عليه؟
+                                </h5>
+                                <p class="mb-0 request-text">
+                                    متقلقش! تواصل معانا، وإحنا هنسعى نوفرهولك بأفضل سعر وفي أسرع وقت.
+                                </p>
+                            </div>
+                            <div class="request-action flex-shrink-0">
+                                <a href="https://wa.me/201062002729?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D9%83%D9%86%D8%AA%20%D8%A8%D8%A8%D8%AD%D8%AB%20%D8%B9%D9%86%20%D9%82%D8%B7%D8%B9%D8%A9%20%D8%A5%D9%84%D9%83%D8%AA%D8%B1%D9%88%D9%86%D9%8A%D8%A9%20%D9%85%D8%B4%20%D9%85%D9%88%D8%AC%D9%88%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%85%D8%AA%D8%AC%D8%B1"
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   class="btn whatsapp-btn btn-lg fw-bold px-4 shadow-sm">
+                                    <i class="bi bi-whatsapp me-2"></i>اطلب قطعتك الآن
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    @if (Model.Products.TotalPages > 1)
+                    {
+                        <nav class="pagination" aria-label="Products pagination">
+                            @if (Model.Products.HasPreviousPage)
+                            {
+                                <a asp-action="Index"
+                                   asp-route-page="@(Model.Products.Page - 1)"
+                                   asp-route-categoryId="@Model.Filter.CategoryId"
+                                   asp-route-search="@Model.Filter.Search"
+                                   asp-route-sortBy="@Model.Filter.SortBy"
+                                   class="page-btn">← Prev</a>
+                            }
+
+                            @for (int i = Math.Max(1, Model.Products.Page - 2); i <= Math.Min(Model.Products.TotalPages, Model.Products.Page + 2); i++)
+                            {
+                                <a asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-categoryId="@Model.Filter.CategoryId"
+                                   asp-route-search="@Model.Filter.Search"
+                                   asp-route-sortBy="@Model.Filter.SortBy"
+                                   class="page-btn @(i == Model.Products.Page ? "active" : "")">@i</a>
+                            }
+
+                            @if (Model.Products.HasNextPage)
+                            {
+                                <a asp-action="Index"
+                                   asp-route-page="@(Model.Products.Page + 1)"
+                                   asp-route-categoryId="@Model.Filter.CategoryId"
+                                   asp-route-search="@Model.Filter.Search"
+                                   asp-route-sortBy="@Model.Filter.SortBy"
+                                   class="page-btn">Next →</a>
+                            }
+                        </nav>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3>No products found@(Model.CurrentCategoryName != null ? $" in {Model.CurrentCategoryName}" : "")</h3>
+                        <p>@(Model.CurrentCategoryName != null ? "This category doesn't have any products yet — check back soon, or browse everything else we offer." : "Try adjusting your filters or search terms.")</p>
+
+                        <!-- Custom Request Banner داخل الـ Empty State -->
+                        <div class="custom-request-card my-4 p-4 rounded-3 shadow-sm" dir="rtl">
+                            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-between gap-3 text-center text-lg-start">
+                                <div class="request-content">
+                                    <h5 class="fw-bold mb-2 request-title">
+                                        <i class="bi bi-search-heart me-2"></i>مش لاقي المنتج اللي بتدور عليه؟
+                                    </h5>
+                                    <p class="mb-0 request-text">
+                                        متقلقش! تواصل معانا، وإحنا هنسعى نوفرهولك بأفضل سعر وفي أسرع وقت.
+                                    </p>
+                                </div>
+                                <div class="request-action flex-shrink-0">
+                                    <a href="https://wa.me/201062002729?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85%D8%8C%20%D9%83%D9%86%D8%AA%20%D8%A8%D8%A8%D8%AD%D8%AB%20%D8%B9%D9%86%20%D9%82%D8%B7%D8%B9%D8%A9%20%D8%A5%D9%84%D9%83%D8%AA%D8%B1%D9%88%D9%8BD9%8A%D8%A9%20%D9%85%D8%B4%20%D9%85%D9%88%D8%AC%D9%88%D8%AF%D8%A9%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%85%D8%AA%D8%AC%D8%B1"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn whatsapp-btn btn-lg fw-bold px-4 shadow-sm">
+                                        <i class="bi bi-whatsapp me-2"></i>اطلب قطعتك الآن
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a asp-controller="Shop" asp-action="Index" class="btn btn-primary mt-2">Browse All Products</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-request-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: 5px solid #25D366;
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .custom-request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.3) !important;
+        }
+
+    .request-title {
+        color: #25D366 !important;
+        font-size: 1.25rem;
+    }
+
+    .request-text {
+        color: #e0e0e0 !important;
+        font-size: 0.95rem;
+    }
+
+    .whatsapp-btn {
+        background-color: #25D366 !important;
+        border-color: #25D366 !important;
+        color: #ffffff !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .whatsapp-btn:hover {
+            background-color: #1da851 !important;
+            border-color: #1da851 !important;
+            color: #ffffff !important;
+        }
+</style>

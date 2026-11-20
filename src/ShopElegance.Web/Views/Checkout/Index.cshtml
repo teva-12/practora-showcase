@@ -1,0 +1,285 @@
+@model ShopElegance.Web.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="checkout-page">
+    <div class="container">
+        <h1 class="page-title mb-4">Checkout</h1>
+
+        <div class="checkout-stepper" aria-label="Checkout progress">
+            <div class="checkout-step done">
+                <div class="checkout-step-circle">✓</div>
+                <span class="step-label">Cart</span>
+            </div>
+            <div class="checkout-step-line"></div>
+            <div class="checkout-step active">
+                <div class="checkout-step-circle">2</div>
+                <span class="step-label">Shipping &amp; Payment</span>
+            </div>
+            <div class="checkout-step-line"></div>
+            <div class="checkout-step">
+                <div class="checkout-step-circle">3</div>
+                <span class="step-label">Confirmation</span>
+            </div>
+        </div>
+
+        <form asp-action="PlaceOrder" method="post">
+            <div class="checkout-layout">
+                <!-- Left: Shipping + Payment -->
+                <div>
+                    <!-- Shipping Address -->
+                    <div class="checkout-section">
+                        <h2 class="checkout-section-title">Shipping Address</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.FirstName">First Name</label>
+                                <input asp-for="ShippingAddress.FirstName" class="form-control" autocomplete="given-name" />
+                                <span asp-validation-for="ShippingAddress.FirstName" class="field-validation-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.LastName">Last Name</label>
+                                <input asp-for="ShippingAddress.LastName" class="form-control" autocomplete="family-name" />
+                                <span asp-validation-for="ShippingAddress.LastName" class="field-validation-error"></span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.Email">Email</label>
+                                <input asp-for="ShippingAddress.Email" class="form-control" type="email" autocomplete="email" />
+                                <span asp-validation-for="ShippingAddress.Email" class="field-validation-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.Phone">Phone</label>
+                                <input asp-for="ShippingAddress.Phone" class="form-control" type="tel" autocomplete="tel" />
+                                <span asp-validation-for="ShippingAddress.Phone" class="field-validation-error"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ShippingAddress.AddressLine1">Street Address</label>
+                            <input asp-for="ShippingAddress.AddressLine1" class="form-control" autocomplete="address-line1" />
+                            <span asp-validation-for="ShippingAddress.AddressLine1" class="field-validation-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ShippingAddress.AddressLine2">Apartment, suite, etc. (optional)</label>
+                            <input asp-for="ShippingAddress.AddressLine2" class="form-control" autocomplete="address-line2" />
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.City">City</label>
+                                <input asp-for="ShippingAddress.City" id="cityInput" class="form-control" autocomplete="address-level2" />
+                                <span asp-validation-for="ShippingAddress.City" class="field-validation-error"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.State">Governorate</label>
+                                <select asp-for="ShippingAddress.State" class="form-control" id="governorateSelect" data-shipping-select>
+                                    <option value="">— Select Governorate —</option>
+                                    @foreach (var gov in Model.Governorates)
+                                    {
+                                        <option value="@gov" selected="@(gov == Model.ShippingAddress.State)">@gov</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="ShippingAddress.State" class="field-validation-error"></span>
+                                <small id="shippingEtaNote" class="help-text" data-shipping-eta></small>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.PostalCode">Postal Code (optional)</label>
+                                <input asp-for="ShippingAddress.PostalCode" class="form-control" autocomplete="postal-code" />
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="ShippingAddress.Country">Country</label>
+                                <input asp-for="ShippingAddress.Country" class="form-control" value="Egypt" readonly />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment -->
+                    <div class="checkout-section">
+                        <h2 class="checkout-section-title">Payment Method</h2>
+                        <div class="form-group">
+                            <select asp-for="PaymentMethod" class="form-control" id="paymentMethodSelect">
+                                <option value="CashOnDelivery">Cash on Delivery</option>
+                                <option value="VodafoneCash">Vodafone Cash</option>
+                                <option value="InstaPay">InstaPay</option>
+                            </select>
+                        </div>
+
+                        <div id="paymentInstructions" class="payment-instructions-box" style="display:none; margin-top:16px; padding:16px; border:1px solid var(--brand-light); border-radius:var(--radius-md); background:var(--bg-secondary);">
+                            <div id="instruction-VodafoneCash" class="payment-instruction" style="display:none">
+                                <h4 style="color:var(--brand); margin-bottom:8px">Vodafone Cash Instructions</h4>
+                                <p>Please transfer the total amount to: <strong>01097152405</strong></p>
+                                <p>After transfer, please send a screenshot to our support: <a href="https://wa.me/201062002729" target="_blank" style="color:var(--brand-light)">01062002729</a></p>
+                            </div>
+                            <div id="instruction-InstaPay" class="payment-instruction" style="display:none">
+                                <h4 style="color:var(--brand); margin-bottom:8px">InstaPay Instructions</h4>
+                                <p>Please transfer the total amount via InstaPay: <a href="https://ipn.eg/S/momakawye/instapay/3DF1Em" target="_blank" style="color:var(--brand-light); font-weight:600">Click here to pay</a></p>
+                                <p>Or use our address: <strong>momakawye@@instapay</strong></p>
+                                <p>After transfer, please send a screenshot to our support: <a href="https://wa.me/201062002729" target="_blank" style="color:var(--brand-light)">01062002729</a></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.Customizations.Any())
+                    {
+                        <div class="checkout-section">
+                            <h2 class="checkout-section-title">Review Your Customizations</h2>
+                            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">
+                                Double-check the embroidery details below — you can fix a typo before placing your order.
+                            </p>
+                            @for (int i = 0; i < Model.Customizations.Count; i++)
+                            {
+                                <div class="checkout-customization-card">
+                                    <input type="hidden" asp-for="Customizations[i].CartItemId" />
+                                    <input type="hidden" asp-for="Customizations[i].ProductName" />
+                                    <input type="hidden" asp-for="Customizations[i].VariantSummary" />
+                                    <input type="hidden" asp-for="Customizations[i].CustomLogoUrl" />
+                                    <strong style="display:block;margin-bottom:10px">@Model.Customizations[i].ProductName — @Model.Customizations[i].VariantSummary</strong>
+                                    
+                                    @if (!string.IsNullOrEmpty(Model.Customizations[i].CustomLogoUrl))
+                                    {
+                                        <div style="margin-bottom:15px; padding:10px; border:1px solid var(--border-light); border-radius:var(--radius-sm); display:inline-block;">
+                                            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">Your Logo:</p>
+                                            <img src="@Model.Customizations[i].CustomLogoUrl" alt="Custom Logo" style="max-width:80px; max-height:80px; display:block;" />
+                                        </div>
+                                    }
+
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label asp-for="Customizations[i].StudentName">Student Name</label>
+                                            <input asp-for="Customizations[i].StudentName" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="Customizations[i].DoctorName">Doctor Name</label>
+                                            <input asp-for="Customizations[i].DoctorName" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label asp-for="Customizations[i].Faculty">Faculty</label>
+                                            <input asp-for="Customizations[i].Faculty" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="Customizations[i].Department">Department</label>
+                                            <input asp-for="Customizations[i].Department" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label asp-for="Customizations[i].GraduationYear">Graduation Year</label>
+                                            <input asp-for="Customizations[i].GraduationYear" class="form-control" type="number" />
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Right: Order Summary -->
+                <div class="checkout-summary">
+                    <h3>Order Summary</h3>
+
+                    <div class="shipping-progress" id="shippingProgress" data-threshold="1000" data-subtotal="@Model.Cart.SubTotal">
+                        <div class="shipping-progress-label">Add more to unlock free shipping</div>
+                        <div class="shipping-progress-track"><div class="shipping-progress-fill" style="width:0%"></div></div>
+                    </div>
+
+                    @foreach (var item in Model.Cart.Items)
+                    {
+                        <div class="checkout-item">
+                            @if (!string.IsNullOrEmpty(item.ProductImageUrl))
+                            {
+                                <img src="@item.ProductImageUrl" alt="@item.ProductName" class="checkout-item-img" />
+                            }
+                            else
+                            {
+                                <div class="checkout-item-img" style="display:flex;align-items:center;justify-content:center;font-size:1.2rem">✦</div>
+                            }
+                            <div style="flex:1;min-width:0">
+                                <div class="checkout-item-name">@item.ProductName</div>
+                                <div class="checkout-item-qty">Qty: @item.Quantity</div>
+                            </div>
+                            <div class="checkout-item-price">@item.TotalPrice.ToString("C")</div>
+                        </div>
+                    }
+
+                    <hr class="checkout-divider" />
+
+                    <div class="coupon-form" style="margin:0 0 16px">
+                        <input type="text" id="couponCode" class="coupon-input" placeholder="Coupon code" />
+                        <button type="button" id="applyCoupon" class="btn btn-outline btn-sm">Apply</button>
+                    </div>
+                    <input asp-for="CouponCode" type="hidden" id="hiddenCouponCode" />
+                    <input asp-for="DiscountAmount" type="hidden" id="hiddenDiscount" />
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="cartSubTotal" data-raw="@Model.Cart.SubTotal">@Model.Cart.SubTotal.ToString("C")</span>
+                    </div>
+                    <div class="summary-row" id="discountRow" style="color:var(--brand-light);display:@(Model.DiscountAmount > 0 ? "flex" : "none")">
+                        <span>Discount</span>
+                        <span id="discountAmount">-@Model.DiscountAmount.ToString("C")</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping</span>
+                        <span id="shippingCostDisplay" data-shipping-cost-display>@Model.ShippingCost.ToString("C")</span>
+                    </div>
+                    <input asp-for="ShippingCost" type="hidden" id="hiddenShippingCost" />
+                    <input asp-for="TaxRate" type="hidden" />
+
+                    <div id="freeLocalDeliveryNote" class="summary-row" style="color:var(--success);font-size:0.8rem;display:none">
+                        <span>🎉 Special rate applied — Zagazig (EGP 9.00)</span>
+                    </div>
+
+                    <hr class="checkout-divider" />
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="grandTotalDisplay" style="font-size:1.2rem">@Model.OrderTotal.ToString("C")</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-checkout" style="margin-top:20px">
+                        🔒 Place Order
+                    </button>
+
+                    <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:12px">
+                        By placing your order you agree to our Terms of Service and Privacy Policy.
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/checkout-shipping.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const select = document.getElementById('paymentMethodSelect');
+            const instructionsBox = document.getElementById('paymentInstructions');
+            const instructions = {
+                'VodafoneCash': document.getElementById('instruction-VodafoneCash'),
+                'InstaPay': document.getElementById('instruction-InstaPay')
+            };
+
+            function toggleInstructions() {
+                const val = select.value;
+                let showBox = false;
+
+                Object.values(instructions).forEach(el => {
+                    if (el) el.style.display = 'none';
+                });
+
+                if (instructions[val]) {
+                    instructions[val].style.display = 'block';
+                    showBox = true;
+                }
+
+                instructionsBox.style.display = showBox ? 'block' : 'none';
+            }
+
+            select.addEventListener('change', toggleInstructions);
+            toggleInstructions(); // Initialize
+        });
+    </script>
+}

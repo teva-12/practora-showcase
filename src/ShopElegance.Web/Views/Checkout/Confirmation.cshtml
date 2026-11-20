@@ -1,0 +1,78 @@
+@model ShopElegance.Core.DTOs.OrderDto
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<div style="padding:60px 0;text-align:center;background:var(--bg-secondary);min-height:300px;display:flex;align-items:center">
+    <div style="max-width:600px;margin:0 auto;padding:0 24px">
+        <div style="font-size:4rem;margin-bottom:16px">🎉</div>
+        <h1 style="font-family:var(--font-serif);font-size:2.2rem;margin-bottom:8px">تم استلام طلبك بنجاح!</h1>
+        <p style="color:var(--text-muted);font-size:1.05rem; direction: rtl;">
+            طلبك الآن جاري التغليف والتجهيز، وسيقوم فريقنا بالتواصل معك عبر هاتفك لترتيب التوصيل.
+        </p>
+        <p style="color:var(--text-muted);font-size:1.05rem; direction: rtl;">
+            لأي استفسار، تواصل معنا على: 01062002729
+        </p>
+    </div>
+</div>
+
+<div style="padding:48px 0 80px">
+    <div class="container" style="max-width:760px">
+        <!-- Order Header -->
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);padding:28px;margin-bottom:24px">
+            <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border)">
+                <div>
+                    <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700">Order Number</p>
+                    <p style="font-size:1.3rem;font-weight:800;color:var(--brand-light)">@Model.OrderNumber</p>
+                </div>
+                <div>
+                    <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700">Payment Method</p>
+                    <p style="font-weight:600">@Model.PaymentMethod</p>
+                </div>
+                <div>
+                    <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700">Date</p>
+                    <p style="font-weight:600">@Model.CreatedAt.ToString("MMMM d, yyyy")</p>
+                </div>
+                <div>
+                    <p style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);font-weight:700">Status</p>
+                    <span class="status-pill status-@Model.Status.ToLower()">@Model.Status</span>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <h3 style="font-size:0.9rem;font-weight:700;margin-bottom:16px">Items Ordered</h3>
+            @foreach (var item in Model.Items)
+            {
+                <div style="display:flex;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border-light)">
+                    <div style="font-size:0.875rem;flex:1">
+                        <strong>@item.ProductName</strong>
+                        @if (!string.IsNullOrEmpty(item.ProductSKU))
+                        {
+                            <span style="color:var(--text-muted);font-size:0.78rem"> · SKU: @item.ProductSKU</span>
+                        }
+                    </div>
+                    <div style="font-size:0.875rem;color:var(--text-muted)">×@item.Quantity</div>
+                    <div style="font-weight:600;font-size:0.875rem">@item.TotalPrice.ToString("C")</div>
+                </div>
+            }
+
+            <!-- Totals -->
+            <div style="margin-top:16px">
+                <div class="summary-row"><span>Subtotal</span><span>@Model.SubTotal.ToString("C")</span></div>
+                @if (Model.DiscountAmount > 0)
+                {
+                    <div class="summary-row" style="color:var(--brand-light)"><span>Discount</span><span>-@Model.DiscountAmount.ToString("C")</span></div>
+                }
+                <div class="summary-row"><span>Shipping</span><span>@Model.ShippingCost.ToString("C")</span></div>
+                <div class="summary-row"><span>Tax</span><span>@Model.TaxAmount.ToString("C")</span></div>
+                <div class="summary-row total"><span>Total</span><span>@Model.Total.ToString("C")</span></div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <a asp-controller="Account" asp-action="Orders" class="btn btn-primary">View My Orders</a>
+            <a asp-controller="Shop" asp-action="Index" class="btn btn-outline">Continue Shopping</a>
+        </div>
+    </div>
+</div>

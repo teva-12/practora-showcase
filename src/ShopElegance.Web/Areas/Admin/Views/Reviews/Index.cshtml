@@ -1,0 +1,66 @@
+@model IEnumerable<ShopElegance.Core.DTOs.ReviewDto>
+@{
+    ViewData["Title"] = "Pending Reviews";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Pending Reviews</h1>
+    <span style="font-size:0.875rem;color:var(--text-muted)">@Model.Count() review@(Model.Count() != 1 ? "s" : "") awaiting moderation</span>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="content-card">
+        <div class="content-card-body" style="text-align:center;padding:60px">
+            <div style="font-size:3rem;margin-bottom:12px">✅</div>
+            <h3>No pending reviews</h3>
+            <p style="color:var(--text-muted)">All reviews have been moderated.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div style="display:flex;flex-direction:column;gap:16px">
+        @foreach (var review in Model)
+        {
+            <div class="content-card">
+                <div class="content-card-body">
+                    <div style="display:flex;align-items:start;gap:16px;flex-wrap:wrap">
+                        <div style="width:44px;height:44px;border-radius:50%;background:var(--brand-light);color:white;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;flex-shrink:0">
+                            @review.UserName.First()
+                        </div>
+                        <div style="flex:1;min-width:200px">
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+                                <strong>@review.UserName</strong>
+                                @if (review.IsVerifiedPurchase)
+                                {
+                                    <span style="font-size:0.72rem;color:#00b894;font-weight:600">✓ Verified Purchase</span>
+                                }
+                                <span style="font-size:0.75rem;color:var(--text-muted)">@review.CreatedAt.ToString("MMM d, yyyy")</span>
+                                <span style="font-size:0.78rem;color:var(--text-muted)">Product ID: @review.ProductId</span>
+                            </div>
+                            <div style="display:flex;gap:2px;margin-bottom:8px">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span style="color:@(i <= review.Rating ? "#d4a853" : "#e0e0e0");font-size:1rem">★</span>
+                                }
+                            </div>
+                            <h4 style="font-size:0.95rem;font-weight:700;margin-bottom:6px">@review.Title</h4>
+                            <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;margin-bottom:16px">@review.Body</p>
+
+                            <div style="display:flex;gap:10px">
+                                <form asp-action="Approve" asp-route-id="@review.Id" method="post">
+                                    <button type="submit" class="btn btn-primary btn-sm">✓ Approve & Publish</button>
+                                </form>
+                                <form asp-action="Delete" asp-route-id="@review.Id" method="post"
+                                      onsubmit="return confirm('Delete this review permanently?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">✕ Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

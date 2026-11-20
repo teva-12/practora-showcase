@@ -1,0 +1,5 @@
+/*
+ * ShopElegance – Client-side validation bootstrap
+ * Uses CDN fallback for jQuery validation libraries.
+ * In production, these are served from wwwroot/lib/ via libman.
+ */

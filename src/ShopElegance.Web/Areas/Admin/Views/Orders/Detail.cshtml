@@ -1,0 +1,253 @@
+@model ShopElegance.Core.DTOs.OrderDto
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<div class="breadcrumb">
+    <a asp-action="Index">Orders</a>
+    <span>›</span>
+    <span>@Model.OrderNumber</span>
+</div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">@Model.OrderNumber</h1>
+        <span style="color:var(--text-muted);font-size:0.875rem">Placed @Model.CreatedAt.ToString("MMMM d, yyyy 'at' HH:mm")</span>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Print" asp-route-id="@Model.Id" class="btn btn-outline" target="_blank">🖨 Print Order</a>
+        <span class="status-pill status-@Model.Status.ToLower()" style="font-size:0.875rem;padding:6px 14px">@Model.Status</span>
+    </div>
+</div>
+
+<div class="order-detail-grid">
+    <!-- Left: Items + Customer -->
+    <div>
+        <!-- Items -->
+        <div class="content-card" style="margin-bottom:20px">
+            <div class="content-card-header">
+                <span class="content-card-title">Order Items</span>
+                <span style="font-size:0.875rem;color:var(--text-muted)">@Model.Items.Count item@(Model.Items.Count != 1 ? "s" : "")</span>
+            </div>
+            <div class="content-card-body" style="padding:0">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <strong style="font-size:0.875rem">@item.ProductName</strong>
+                                    @if (item.IsDigital)
+                                    {
+                                        <span style="font-size:0.72rem;color:var(--brand-light);margin-left:6px">Digital</span>
+                                    }
+                                    @if (item.Customization != null)
+                                    {
+                                        <div style="margin-top:6px;padding:8px 10px;background:var(--bg-secondary);border-radius:6px;font-size:0.75rem;color:var(--text-secondary);max-width:340px">
+                                            <div style="margin-bottom:8px">
+                                                <strong style="color:var(--text-primary)">👔 Fit:</strong>
+                                                <span>Type: @item.Customization.CoatType · Size: @item.Customization.Size · Fabric: @item.Customization.Fabric · Color: @item.Customization.Color</span>
+                                            </div>
+
+                                            <div style="margin-bottom:8px">
+                                                <strong style="color:var(--text-primary)">🧵 Embroidery:</strong>
+                                                @if (item.Customization.EmbroideryEnabled)
+                                                {
+                                                    <div>@(item.Customization.StudentName ?? item.Customization.DoctorName) · @item.Customization.Faculty @item.Customization.Department @item.Customization.GraduationYear</div>
+                                                    <div>Font: @item.Customization.EmbroideryFontName · Position: @item.Customization.EmbroideryPosition</div>
+                                                    @if (!string.IsNullOrEmpty(item.Customization.EmbroideryTextColor))
+                                                    {
+                                                        <div>Color: <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:@item.Customization.EmbroideryTextColor;vertical-align:middle;border:1px solid var(--border)"></span> @item.Customization.EmbroideryTextColor</div>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span>Disabled</span>
+                                                }
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(item.Customization.LogoType))
+                                            {
+                                                <div style="margin-bottom:8px">
+                                                    <strong style="color:var(--text-primary)">🖼 Logo:</strong> @item.Customization.LogoType
+                                                    @{
+                                                        var previewUrl = item.Customization.LogoImageUrl ?? item.Customization.CustomLogoUrl;
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(previewUrl))
+                                                    {
+                                                        <a href="@previewUrl" target="_blank" style="display:block; width:96px; height:96px; border:1px solid var(--border); border-radius:8px; padding:4px; background:#fff; margin-top:4px;">
+                                                            <img src="@previewUrl" alt="Logo" style="width:100%; height:100%; object-fit:contain;" />
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
+
+                                            @if (item.Customization.RequiresSpecialPackaging || item.Customization.IsFragile)
+                                            {
+                                                <div style="margin-bottom:8px; color:#d97706">
+                                                    <strong style="color:var(--text-primary)">📦 Shipping Extras:</strong>
+                                                    @if (item.Customization.RequiresSpecialPackaging) { <span>Special Packaging Required</span> }
+                                                    @if (item.Customization.RequiresSpecialPackaging && item.Customization.IsFragile) { <span> · </span> }
+                                                    @if (item.Customization.IsFragile) { <span>Fragile Item</span> }
+                                                </div>
+                                            }
+
+                                            @if (item.Customization.PriceAdjustment > 0)
+                                            {
+                                                <div style="border-top:1px solid var(--border);padding-top:4px;margin-top:4px">
+                                                    <strong style="color:var(--text-primary)">Fee:</strong> @item.Customization.PriceAdjustment.ToString("C")
+                                                    @if (item.Customization.EmbroideryCost > 0) { <span style="font-size:0.7rem">(Embroidery: @item.Customization.EmbroideryCost.ToString("C"))</span> }
+                                                    @if (item.Customization.LogoCost > 0) { <span style="font-size:0.7rem">(Logo: @item.Customization.LogoCost.ToString("C"))</span> }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </td>
+                                <td style="font-size:0.8rem;color:var(--text-muted)">@(item.ProductSKU ?? "—")</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.UnitPrice.ToString("C")</td>
+                                <td><strong>@item.TotalPrice.ToString("C")</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div style="padding:16px 20px">
+                    <div class="summary-row" style="font-size:0.875rem; display:flex; justify-content:space-between; margin-bottom: 8px;">
+                        <span style="min-width:120px">Subtotal</span>
+                        <span>@Model.SubTotal.ToString("C")</span>
+                    </div>
+                    @if (Model.DiscountAmount > 0)
+                    {
+                        <div class="summary-row" style="font-size:0.875rem; color:var(--brand-light); display:flex; justify-content:space-between; margin-bottom: 8px;">
+                            <span style="min-width:120px">Discount @(!string.IsNullOrEmpty(Model.CouponCode) ? $"({Model.CouponCode})" : "")</span>
+                            <span>-@Model.DiscountAmount.ToString("C")</span>
+                        </div>
+                    }
+                    <div class="summary-row" style="font-size:0.875rem; display:flex; justify-content:space-between; margin-bottom: 8px;">
+                        <span style="min-width:120px">Shipping</span>
+                        <span>@Model.ShippingCost.ToString("C")</span>
+                    </div>
+                    <div class="summary-row" style="font-size:0.875rem; display:flex; justify-content:space-between; margin-bottom: 8px;">
+                        <span style="min-width:120px">Tax</span>
+                        <span>@Model.TaxAmount.ToString("C")</span>
+                    </div>
+                    <div class="summary-row total" style="display:flex; justify-content:space-between; border-top:1px solid var(--border); padding-top:10px; margin-top:8px; font-weight:bold;">
+                        <span style="min-width:120px">Total</span>
+                        <span>@Model.Total.ToString("C")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Status -->
+        <div class="content-card">
+            <div class="content-card-header"><span class="content-card-title">Update Order Status</span></div>
+            <div class="content-card-body">
+                <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Order Status</label>
+                            <select name="status" class="form-control">
+                                @foreach (var s in (string[])ViewBag.Statuses)
+                                {
+                                    <option value="@s" selected="@(Model.Status == s)">@s</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Status</label>
+                            <select name="paymentStatus" class="form-control">
+                                <option value="">No change</option>
+                                @foreach (var ps in (string[])ViewBag.PaymentStatuses)
+                                {
+                                    <option value="@ps" selected="@(Model.PaymentStatus == ps)">@ps</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tracking Number (optional)</label>
+                        <input type="text" name="trackingNumber" class="form-control" value="@Model.TrackingNumber" placeholder="e.g. 1Z999AA10123456784" />
+                    </div>
+                    <div class="form-group">
+                        <label>Note (optional)</label>
+                        <textarea name="comment" class="form-control" rows="2" placeholder="Internal note about this status update..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Customer + Shipping + History -->
+    <div>
+        <!-- Customer -->
+        <div class="order-info-card" style="margin-bottom:16px">
+            <div class="order-info-title">Customer</div>
+            <div class="order-info-row"><span>Name</span><strong>@Model.CustomerName</strong></div>
+            <div class="order-info-row"><span>Email</span><strong>@Model.CustomerEmail</strong></div>
+        </div>
+
+        <!-- Shipping -->
+        <div class="order-info-card" style="margin-bottom:16px">
+            <div class="order-info-title">Shipping Address</div>
+            <div style="font-size:0.875rem;color:var(--text-secondary);line-height:1.8">
+                @Model.ShippingAddress.FirstName @Model.ShippingAddress.LastName<br />
+                @Model.ShippingAddress.AddressLine1<br />
+                @if (!string.IsNullOrEmpty(Model.ShippingAddress.AddressLine2))
+                {
+                    @Model.ShippingAddress.AddressLine2<br />
+                }
+                @Model.ShippingAddress.City, @Model.ShippingAddress.State @Model.ShippingAddress.PostalCode<br />
+                @Model.ShippingAddress.Country
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="order-info-card" style="margin-bottom:16px">
+            <div class="order-info-title">Payment</div>
+            <div class="order-info-row">
+                <span>Method</span>
+                <strong>@(Model.PaymentMethod != null ? Model.PaymentMethod.ToString() : "—")</strong>
+            </div>
+            <div class="order-info-row"><span>Status</span><span class="status-pill status-@Model.PaymentStatus.ToLower()">@Model.PaymentStatus</span></div>
+            @if (!string.IsNullOrEmpty(Model.PaymentTransactionId))
+            {
+                <div class="order-info-row"><span>Transaction ID</span><strong style="font-size:0.78rem">@Model.PaymentTransactionId</strong></div>
+            }
+        </div>
+
+        <!-- Status History -->
+        @if (Model.StatusHistory.Any())
+        {
+            <div class="order-info-card">
+                <div class="order-info-title">Status History</div>
+                <div class="history-list">
+                    @foreach (var h in Model.StatusHistory)
+                    {
+                        <div class="history-item">
+                            <div class="history-dot">@h.Status.First()</div>
+                            <div class="history-body">
+                                <div class="history-status">@h.Status</div>
+                                @if (!string.IsNullOrEmpty(h.Comment))
+                                {
+                                    <div class="history-comment">@h.Comment</div>
+                                }
+                                <div class="history-date">@h.CreatedAt.ToString("MMM d, yyyy HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

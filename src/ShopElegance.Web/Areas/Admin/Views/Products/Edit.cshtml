@@ -1,0 +1,210 @@
+@model ShopElegance.Web.ViewModels.AdminProductViewModel
+@{
+    ViewData["Title"] = "Edit Product";
+    int productId = (int)ViewBag.ProductId;
+    var existingImages = ViewBag.ExistingImages as IEnumerable<ShopElegance.Core.DTOs.ProductImageDto>
+                         ?? Enumerable.Empty<ShopElegance.Core.DTOs.ProductImageDto>();
+}
+
+<div class="breadcrumb">
+    <a asp-action="Index">Products</a><span>›</span><span>Edit Product</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Edit Product</h1>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-secondary">← Cancel</a>
+        <button type="submit" form="productForm" class="btn btn-primary">Save Changes</button>
+    </div>
+</div>
+
+<form asp-action="Edit" asp-route-id="@productId" method="post"
+      enctype="multipart/form-data" id="productForm">
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+        <!-- Left -->
+        <div>
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Basic Information</span></div>
+                <div class="content-card-body">
+                    <div asp-validation-summary="All" class="alert alert-danger"
+                         style="display:@(ViewData.ModelState.IsValid?"none":"block")"></div>
+
+                    <div class="form-group">
+                        <label asp-for="Name">Product Name *</label>
+                        <input asp-for="Name" id="productName" class="form-control" />
+                        <span asp-validation-for="Name" class="field-validation-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ShortDescription">Short Description *</label>
+                        <input asp-for="ShortDescription" class="form-control" />
+                        <span asp-validation-for="ShortDescription" class="field-validation-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Description">Full Description *</label>
+                        <textarea asp-for="Description" class="form-control" rows="8"></textarea>
+                        <span asp-validation-for="Description" class="field-validation-error"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Pricing & Inventory</span></div>
+                <div class="content-card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Price">Price ($) *</label>
+                            <input asp-for="Price" class="form-control" type="number" step="0.01" min="0" />
+                            <span asp-validation-for="Price" class="field-validation-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="CompareAtPrice">Compare At Price ($)</label>
+                            <input asp-for="CompareAtPrice" class="form-control" type="number" step="0.01" min="0" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="StockQuantity">Stock Quantity *</label>
+                            <input asp-for="StockQuantity" class="form-control" type="number" min="0" />
+                            <span asp-validation-for="StockQuantity" class="field-validation-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="SKU">SKU</label>
+                            <input asp-for="SKU" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-check" style="margin-bottom:12px">
+                        <input asp-for="TrackInventory" class="form-check-input" type="checkbox" />
+                        <label asp-for="TrackInventory">Track inventory</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Existing Images -->
+            @if (existingImages.Any())
+            {
+                <div class="content-card" style="margin-bottom:20px">
+                    <div class="content-card-header"><span class="content-card-title">Current Images</span></div>
+                    <div class="content-card-body">
+                        <div class="image-preview-grid">
+                            @foreach (var img in existingImages)
+                            {
+                                <div class="image-preview-item">
+                                    <img src="@img.Url" alt="@img.AltText" />
+                                    @if (img.IsPrimary)
+                                    {
+                                        <span style="position:absolute;bottom:4px;left:4px;background:var(--brand-light);color:white;font-size:0.65rem;padding:2px 6px;border-radius:4px">Primary</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <small class="help-text" style="margin-top:12px;display:block">Upload new images below to replace existing ones.</small>
+                    </div>
+                </div>
+            }
+
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Upload New Images</span></div>
+                <div class="content-card-body">
+                    <div class="image-upload-area">
+                        <div class="image-upload-icon">🖼</div>
+                        <p style="font-size:0.875rem;color:var(--text-muted)">Click or drag & drop to upload new images</p>
+                        <input type="file" asp-for="Images" multiple accept="image/*"
+                               style="display:none" data-preview="newImagePreviewGrid" />
+                    </div>
+                    <div class="image-preview-grid" id="newImagePreviewGrid"></div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="content-card-header"><span class="content-card-title">SEO</span></div>
+                <div class="content-card-body">
+                    <div class="form-group">
+                        <label asp-for="MetaTitle">Meta Title</label>
+                        <input asp-for="MetaTitle" class="form-control" maxlength="200" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="MetaDescription">Meta Description</label>
+                        <textarea asp-for="MetaDescription" class="form-control" rows="2" maxlength="500"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div>
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Organization</span></div>
+                <div class="content-card-body">
+                    <div class="form-group">
+                        <label asp-for="CategoryId">Category *</label>
+                        <select asp-for="CategoryId" class="form-control">
+                            <option value="">— Select Category —</option>
+                            @foreach (var cat in Model.Categories)
+                            {
+                                <option value="@cat.Id" selected="@(Model.CategoryId == cat.Id)">@cat.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="field-validation-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ProductType">Product Type *</label>
+                        <select asp-for="ProductType" class="form-control" id="productTypeSelect">
+                            <option value="Physical" selected="@(Model.ProductType == "Physical")">Physical</option>
+                            <option value="Digital" selected="@(Model.ProductType == "Digital")">Digital</option>
+                            <option value="Both" selected="@(Model.ProductType == "Both")">Both</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="downloadUrlGroup">
+                        <label asp-for="DownloadUrl">Download URL</label>
+                        <input asp-for="DownloadUrl" class="form-control" placeholder="/downloads/file.zip" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="TagsInput">Tags</label>
+                        <input asp-for="TagsInput" class="form-control" placeholder="tag1, tag2, tag3" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Visibility</span></div>
+                <div class="content-card-body">
+                    <div class="form-check" style="margin-bottom:12px">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsActive">Active (visible in store)</label>
+                    </div>
+                    <div class="form-check">
+                        <input asp-for="IsFeatured" class="form-check-input" type="checkbox" />
+                        <label asp-for="IsFeatured">Featured on homepage</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="content-card-header"><span class="content-card-title">Shipping</span></div>
+                <div class="content-card-body">
+                    <div class="form-group">
+                        <label asp-for="Weight">Weight (kg)</label>
+                        <input asp-for="Weight" class="form-control" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Dimensions">Dimensions</label>
+                        <input asp-for="Dimensions" class="form-control" placeholder="L × W × H cm" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+<script>
+const typeSelect = document.getElementById('productTypeSelect');
+const downloadGroup = document.getElementById('downloadUrlGroup');
+function toggleDownload() {
+    downloadGroup.style.display = typeSelect.value !== 'Physical' ? 'block' : 'none';
+}
+typeSelect?.addEventListener('change', toggleDownload);
+toggleDownload();
+</script>
+}

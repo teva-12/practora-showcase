@@ -1,0 +1,122 @@
+@model ShopElegance.Core.DTOs.CreateWhiteCoatVariantDto
+@{
+    ViewData["Title"] = "Add White Coat Variant";
+    var products = ViewBag.Products as IEnumerable<ShopElegance.Core.DTOs.ProductListDto> ?? Enumerable.Empty<ShopElegance.Core.DTOs.ProductListDto>();
+}
+
+<div class="breadcrumb">
+    <a asp-action="Index">White Coat Variants</a><span>›</span><span>Add Variant</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Add White Coat Variant</h1>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-secondary">← Cancel</a>
+        <button type="submit" form="variantForm" class="btn btn-primary">Save Variant</button>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" id="variantForm">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:24px">
+        <div>
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Product & Identity</span></div>
+                <div class="content-card-body">
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"block")"></div>
+
+                    <div class="form-group">
+                        <label asp-for="ProductId">Product *</label>
+                        <select asp-for="ProductId" class="form-control">
+                            <option value="">— Select Product —</option>
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="SKU">SKU *</label>
+                            <input asp-for="SKU" class="form-control" placeholder="e.g. WC-M-WHT-001" />
+                            <span asp-validation-for="SKU" class="field-validation-error"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Barcode">Barcode</label>
+                            <input asp-for="Barcode" class="form-control" placeholder="Optional" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Variant Attributes</span></div>
+                <div class="content-card-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="CoatType">Coat Type *</label>
+                            <select asp-for="CoatType" class="form-control">
+                                <option value="Normal">Normal</option>
+                                <option value="Zip">بسوسته</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Size">Size *</label>
+                            <select asp-for="Size" class="form-control">
+                                @foreach (var s in new[] { "Medium", "Large", "X-Large", "2X-Large", "3X-Large" })
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label asp-for="Color">Color *</label>
+                            <input asp-for="Color" class="form-control" value="White" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Fabric">Fabric *</label>
+                            <select asp-for="Fabric" class="form-control">
+                                <option value="Cotton">Cotton</option>
+                                <option value="Regular">Regular</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="content-card" style="margin-bottom:20px">
+                <div class="content-card-header"><span class="content-card-title">Pricing & Stock</span></div>
+                <div class="content-card-body">
+                    <div class="form-group">
+                        <label asp-for="PriceAdjustment">Price Adjustment ($)</label>
+                        <input asp-for="PriceAdjustment" class="form-control" type="number" step="0.01" min="0" />
+                        <small class="help-text">Added on top of the base product price</small>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Weight">Weight (kg)</label>
+                        <input asp-for="Weight" class="form-control" type="number" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="StockQuantity">Stock Quantity *</label>
+                        <input asp-for="StockQuantity" class="form-control" type="number" min="0" />
+                        <span asp-validation-for="StockQuantity" class="field-validation-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="LowStockThreshold">Low Stock Threshold</label>
+                        <input asp-for="LowStockThreshold" class="form-control" type="number" min="0" />
+                    </div>
+                    <div class="form-check">
+                        <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                        <label asp-for="IsActive">Active (available for purchase)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}

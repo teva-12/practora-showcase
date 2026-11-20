@@ -1,0 +1,63 @@
+## .NET / C#
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+*.bak
+*.log
+
+## Logs
+Logs/
+*.log
+
+## Secrets & Config
+## NOTE: appsettings.Production.json is intentionally tracked — it contains no real secrets,
+## only blank placeholders that document which settings must be supplied via environment
+## variables at deploy time. Never put actual secret values in it.
+appsettings.Secrets.json
+secrets.json
+.env
+
+## Published output
+publish/
+wwwroot/uploads/
+
+## Database
+*.mdf
+*.ldf
+
+## Node
+node_modules/
+npm-debug.log*
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Migrations: Designer.cs files are part of each migration's identity and are REQUIRED for
+## `dotnet ef database update` to work correctly for anyone else who clones this repo (or for
+## a CI/CD pipeline). Do not ignore them — EF Core will silently produce broken/incomplete
+## migrations without them.
+
+## Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+publish_clean/
+publish_clean.zip
+src/script.sql
+
+## Runtime secrets & data - never commit
+# ASP.NET Data Protection keys (unencrypted master key: can forge auth cookies)
+DataProtection-Keys/
+# Files uploaded by real customers at runtime
+**/wwwroot/images/customer-logos/
+# Local overrides and publish credentials
+appsettings.*.local.json
+*.pubxml.user
+# Test run output
+test_output*.txt

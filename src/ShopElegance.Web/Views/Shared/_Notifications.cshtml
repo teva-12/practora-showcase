@@ -1,0 +1,21 @@
+@{
+    var success = TempData["SuccessMessage"]?.ToString();
+    var error = TempData["ErrorMessage"]?.ToString();
+    var info = TempData["InfoMessage"]?.ToString();
+}
+
+@* Razor HTML-attribute-encodes these values automatically (no @Html.Raw) —
+   site.js reads them via .dataset, which returns the decoded plain text,
+   so nothing here can break out of an HTML or script context. *@
+@if (!string.IsNullOrEmpty(success))
+{
+    <div id="ssrSuccessMsg" data-message="@success" style="display:none"></div>
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div id="ssrErrorMsg" data-message="@error" style="display:none"></div>
+}
+@if (!string.IsNullOrEmpty(info))
+{
+    <div id="ssrInfoMsg" data-message="@info" style="display:none"></div>
+}

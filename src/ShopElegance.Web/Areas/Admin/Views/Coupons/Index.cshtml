@@ -1,0 +1,92 @@
+@model IEnumerable<ShopElegance.Core.DTOs.CouponDto>
+@{
+    ViewData["Title"] = "Coupons";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Coupons</h1>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">+ Add Coupon</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="content-card-body" style="padding:0">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Used / Limit</th>
+                    <th>Expires</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="7" class="table-empty">No coupons yet.</td></tr>
+                }
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong style="font-family:monospace;font-size:0.9rem;letter-spacing:0.05em">@c.Code</strong>
+                            @if (!string.IsNullOrEmpty(c.Description))
+                            {
+                                <br/><span style="font-size:0.75rem;color:var(--text-muted)">@c.Description</span>
+                            }
+                        </td>
+                        <td style="font-size:0.875rem">@c.Type</td>
+                        <td style="font-size:0.9rem;font-weight:600">
+                            @if (c.Type == "Percentage")
+                            {
+                                @($"{c.Value}%")
+                            }
+                            else
+                            {
+                                @c.Value.ToString("C")
+                            }
+                        </td>
+                        <td style="font-size:0.875rem">
+                            @c.UsageCount / @(c.UsageLimit?.ToString() ?? "∞")
+                        </td>
+                        <td style="font-size:0.8rem;color:var(--text-muted)">
+                            @(c.ExpiresAt.HasValue ? c.ExpiresAt.Value.ToString("MMM d, yyyy") : "Never")
+                        </td>
+                        <td>
+                            @if (!c.IsActive)
+                            {
+                                <span class="status-pill status-cancelled">Inactive</span>
+                            }
+                            else if (c.ExpiresAt.HasValue && c.ExpiresAt.Value < DateTime.UtcNow)
+                            {
+                                <span class="status-pill status-cancelled">Expired</span>
+                            }
+                            else if (c.UsageLimit.HasValue && c.UsageCount >= c.UsageLimit.Value)
+                            {
+                                <span class="status-pill status-processing">Exhausted</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-delivered">Active</span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a asp-action="Edit" asp-route-id="@c.Id" class="btn btn-outline btn-sm">Edit</a>
+                                <form asp-action="Delete" method="post" style="display:inline"
+                                      onsubmit="return confirm('Delete this coupon?')">
+                                    <input type="hidden" name="id" value="@c.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

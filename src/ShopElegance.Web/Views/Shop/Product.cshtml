@@ -1,0 +1,445 @@
+@model ShopElegance.Web.ViewModels.ProductDetailViewModel
+@{
+    ViewData["Title"] = Model.Product.Name;
+}
+
+<div class="product-detail-page">
+    <div class="container">
+        <span class="wc-hidden" style="display:none"
+              data-recent-product
+              data-recent-id="@Model.Product.Id"
+              data-recent-name="@Model.Product.Name"
+              data-recent-slug="@Model.Product.Slug"
+              data-recent-image="@(Model.Product.Images.Any() ? Model.Product.Images.First().Url : "")"
+              data-recent-price="@Model.Product.Price.ToString("C")"></span>
+        <!-- Breadcrumb -->
+        <div class="breadcrumb mb-4">
+            <a asp-controller="Home" asp-action="Index">Home</a>
+            <span>›</span>
+            <a asp-controller="Shop" asp-action="Index">Shop</a>
+            <span>›</span>
+            <a asp-controller="Shop" asp-action="Index" asp-route-categoryId="@Model.Product.CategoryId">@Model.Product.CategoryName</a>
+            <span>›</span>
+            <span>@Model.Product.Name</span>
+        </div>
+
+        <div class="product-detail-grid">
+            <!-- Image Gallery -->
+            <div class="product-gallery">
+                <div class="gallery-main" id="galleryMain">
+                    @if (Model.Product.Images.Any())
+                    {
+                        <img src="@Model.Product.Images.First().Url" alt="@Model.Product.Name"
+                             class="gallery-img" id="mainImage" />
+                    }
+                    else
+                    {
+                        <div class="gallery-placeholder"><span>✦</span></div>
+                    }
+                    @if (Model.Product.DiscountPercentage.HasValue)
+                    {
+                        <div class="gallery-badge">-@Model.Product.DiscountPercentage.Value.ToString("0")% OFF</div>
+                    }
+                    @if (Model.Product.Images.Count > 1)
+                    {
+                        <button type="button" class="gallery-nav gallery-nav-prev" id="galleryPrev" aria-label="Previous image">‹</button>
+                        <button type="button" class="gallery-nav gallery-nav-next" id="galleryNext" aria-label="Next image">›</button>
+                        <div class="gallery-counter"><span id="galleryCounter">1</span> / @Model.Product.Images.Count</div>
+                    }
+                </div>
+                @if (Model.Product.Images.Count > 1)
+                {
+                    <div class="gallery-thumbs" id="galleryThumbs">
+                        @foreach (var img in Model.Product.Images)
+                        {
+                            <button class="thumb-btn @(img.IsPrimary ? "active" : "")"
+                                    onclick="setMainImage('@img.Url', this)">
+                                <img src="@img.Url" alt="@img.AltText" loading="lazy" />
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Product Info -->
+            <div class="product-detail-info">
+                <div class="product-meta-top">
+                    <span class="product-category-tag">@Model.Product.CategoryName</span>
+                    @if (Model.Product.ProductType == "Digital")
+                    {
+                        <span class="digital-badge">⬇ Digital Download</span>
+                    }
+                </div>
+
+                <h1 class="product-detail-title">@Model.Product.Name</h1>
+
+                @if (Model.Product.ReviewCount > 0)
+                {
+                    <div class="product-rating-row">
+                        <div class="stars" style="--rating: @Model.Product.AverageRating">★★★★★</div>
+                        <span class="rating-avg">@Model.Product.AverageRating.ToString("0.0")</span>
+                        <a href="#reviews" class="rating-count">@Model.Product.ReviewCount reviews</a>
+                    </div>
+                }
+
+                <div class="product-price-row">
+                    <span class="detail-price">@Model.Product.Price.ToString("C")</span>
+                    @if (Model.Product.CompareAtPrice.HasValue)
+                    {
+                        <span class="detail-original">@Model.Product.CompareAtPrice.Value.ToString("C")</span>
+                        <span class="detail-save">Save @Model.Product.DiscountPercentage.Value.ToString("0")%</span>
+                    }
+                </div>
+
+                <p class="product-short-desc">@Model.Product.ShortDescription</p>
+
+                <div class="product-detail-meta">
+                    @if (!string.IsNullOrEmpty(Model.Product.SKU))
+                    {
+                        <div class="meta-row"><span>SKU:</span><strong>@Model.Product.SKU</strong></div>
+                    }
+                    <div class="meta-row">
+                        <span>Availability:</span>
+                        @if (Model.Product.InStock)
+                        {
+                            <strong class="text-success">✓ In Stock (@Model.Product.StockQuantity available)</strong>
+                        }
+                        else
+                        {
+                            <strong class="text-danger">✗ Out of Stock</strong>
+                        }
+                    </div>
+                    <div class="meta-row"><span>Type:</span><strong>@Model.Product.ProductType</strong></div>
+                </div>
+
+                <!-- Add to Cart -->
+                @if (Model.HasWhiteCoatVariants)
+                {
+                    <div class="whitecoat-cta">
+                        <p class="whitecoat-cta-text">This product can be customized with your size, embroidery, and logo.</p>
+                        <a asp-controller="WhiteCoat" asp-action="Customize" asp-route-productId="@Model.Product.Id"
+                           class="btn btn-primary-lg btn-cart-detail">🧵 Customize & Add to Cart</a>
+                    </div>
+                }
+                else if (Model.Product.InStock)
+                {
+                    <form asp-controller="Cart" asp-action="Add" method="post" class="add-to-cart-detail">
+                        <input type="hidden" name="productId" value="@Model.Product.Id" />
+                        <div class="qty-row">
+                            <label>Quantity</label>
+                            <div class="qty-control">
+                                <button type="button" class="qty-btn" onclick="adjustQty(-1)">−</button>
+                                <input type="number" name="quantity" id="qtyInput" value="1" min="1"
+                                       max="@Model.Product.StockQuantity" class="qty-input" />
+                                <button type="button" class="qty-btn" onclick="adjustQty(1)">+</button>
+                            </div>
+                        </div>
+                        <div class="cart-buttons">
+                            <button type="submit" class="btn btn-primary-lg btn-cart-detail">
+                                🛒 Add to Cart
+                            </button>
+                            @if (User.Identity?.IsAuthenticated == true)
+                            {
+                                <button type="submit" form="wishlistToggleForm" class="btn btn-outline-lg btn-wishlist-detail @(Model.IsInWishlist ? "in-wishlist" : "")"
+                                        data-label-saved="❤ Saved" data-label-default="♡ Wishlist">
+                                    @(Model.IsInWishlist ? "❤ Saved" : "♡ Wishlist")
+                                </button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-lg">
+                                    ♡ Wishlist
+                                </a>
+                            }
+                        </div>
+                    </form>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Wishlist" asp-action="Toggle" method="post" id="wishlistToggleForm" class="wishlist-toggle-form" style="display:none">
+                            <input type="hidden" name="productId" value="@Model.Product.Id" />
+                        </form>
+                    }
+                }
+                else
+                {
+                    <div class="out-of-stock-msg">
+                        <span>This product is currently out of stock.</span>
+                    </div>
+                }
+
+                <!-- Tags -->
+                @if (Model.Product.Tags.Any())
+                {
+                    <div class="product-tags">
+                        <span>Tags:</span>
+                        @foreach (var tag in Model.Product.Tags)
+                        {
+                            <a asp-controller="Shop" asp-action="Index" asp-route-search="@tag" class="tag">@tag</a>
+                        }
+                    </div>
+                }
+
+                <!-- Share -->
+                <div class="product-share">
+                    <span>Share:</span>
+                    <a href="https://twitter.com/intent/tweet?text=@Uri.EscapeDataString(Model.Product.Name)" target="_blank" rel="noopener" class="share-btn">𝕏</a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString($"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" target="_blank" rel="noopener" class="share-btn">f</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs: Description / Reviews -->
+        <div class="product-tabs">
+            <div class="tab-header">
+                <button class="tab-btn active" data-tab="description">Description</button>
+                <button class="tab-btn" data-tab="reviews">Reviews (@Model.Product.ReviewCount)</button>
+                @if (Model.Product.Weight.HasValue || !string.IsNullOrEmpty(Model.Product.Dimensions))
+                {
+                    <button class="tab-btn" data-tab="shipping">Shipping & Details</button>
+                }
+            </div>
+
+            <div class="tab-content active" id="tab-description">
+                <div class="product-description">@Html.Raw(Model.Product.Description)</div>
+            </div>
+
+            <div class="tab-content" id="tab-reviews">
+                <div id="reviews">
+                    @if (Model.Reviews.Items.Any())
+                    {
+                        <div class="reviews-summary">
+                            <div class="rating-big">@Model.Product.AverageRating.ToString("0.0")</div>
+                            <div class="stars" style="--rating: @Model.Product.AverageRating">★★★★★</div>
+                            <span>Based on @Model.Product.ReviewCount reviews</span>
+                        </div>
+                        <div class="reviews-list">
+                            @foreach (var review in Model.Reviews.Items)
+                            {
+                                <div class="review-card">
+                                    <div class="review-header">
+                                        <div class="reviewer-avatar">@review.UserName.First()</div>
+                                        <div>
+                                            <strong>@review.UserName</strong>
+                                            @if (review.IsVerifiedPurchase)
+                                            {
+                                                <span class="verified-badge">✓ Verified Purchase</span>
+                                            }
+                                            <div class="stars sm" style="--rating: @review.Rating">★★★★★</div>
+                                        </div>
+                                        <span class="review-date">@review.CreatedAt.ToString("MMM d, yyyy")</span>
+                                    </div>
+                                    <h4 class="review-title">@review.Title</h4>
+                                    <p class="review-body">@review.Body</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="no-reviews">No reviews yet. Be the first to review this product!</p>
+                    }
+
+                    <!-- Write Review Form -->
+                    @if (User.Identity?.IsAuthenticated == true && !Model.UserHasReviewed)
+                    {
+                        <div class="review-form-section">
+                            <h3>Write a Review</h3>
+                            <form asp-controller="Shop" asp-action="SubmitReview" method="post">
+                                <input type="hidden" asp-for="NewReview.ProductId" />
+                                <div class="form-group">
+                                    <label>Your Rating</label>
+                                    <div class="star-picker" id="starPicker">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" name="NewReview.Rating" value="@i" id="star@i" />
+                                            <label for="star@i" title="@i stars">★</label>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="NewReview.Title">Review Title</label>
+                                    <input asp-for="NewReview.Title" class="form-control" placeholder="Sum up your experience" />
+                                    <span asp-validation-for="NewReview.Title" class="text-danger"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label asp-for="NewReview.Body">Your Review</label>
+                                    <textarea asp-for="NewReview.Body" class="form-control" rows="4"
+                                              placeholder="Tell others what you think..."></textarea>
+                                    <span asp-validation-for="NewReview.Body" class="text-danger"></span>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit Review</button>
+                            </form>
+                        </div>
+                    }
+                    else if (!User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="review-login-prompt">
+                            <a asp-controller="Account" asp-action="Login">Sign in</a> to write a review.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-shipping">
+                <div class="shipping-details">
+                    @if (Model.Product.Weight.HasValue)
+                    {
+                        <p><strong>Weight:</strong> @Model.Product.Weight kg</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Product.Dimensions))
+                    {
+                        <p><strong>Dimensions:</strong> @Model.Product.Dimensions</p>
+                    }
+                    <p><strong>Shipping:</strong> Free on orders over $50. Standard 3–7 business days.</p>
+                    <p><strong>Returns:</strong> 30-day hassle-free returns.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products -->
+        @if (Model.RelatedProducts.Any())
+        {
+            <section class="related-section" data-reveal>
+                <h2 class="section-title">You May Also Like</h2>
+                <div class="products-grid products-grid-4" data-reveal-stagger>
+                    @foreach (var product in Model.RelatedProducts)
+                    {
+                        <partial name="_ProductCard" model="product" />
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- Recently Viewed -->
+        <section class="related-section recently-viewed-section" style="display:none" id="recentlyViewedSectionProduct">
+            <h2 class="section-title">Recently Viewed</h2>
+            <div class="products-grid products-grid-4" id="recentlyViewedGrid"></div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const galleryImages = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Product.Images.Select(i => i.Url)));
+        let galleryIndex = 0;
+
+        function setMainImage(url, btn) {
+            document.getElementById('mainImage').src = url;
+            document.querySelectorAll('.thumb-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            galleryIndex = galleryImages.indexOf(url);
+            if (galleryIndex < 0) galleryIndex = 0;
+            updateGalleryCounter();
+        }
+
+        function updateGalleryCounter() {
+            const counter = document.getElementById('galleryCounter');
+            if (counter) counter.textContent = galleryIndex + 1;
+        }
+
+        function goToGalleryImage(delta) {
+            if (!galleryImages.length) return;
+            galleryIndex = (galleryIndex + delta + galleryImages.length) % galleryImages.length;
+            const url = galleryImages[galleryIndex];
+            document.getElementById('mainImage').src = url;
+            document.querySelectorAll('.thumb-btn').forEach((b, i) => b.classList.toggle('active', i === galleryIndex));
+            updateGalleryCounter();
+        }
+
+        document.getElementById('galleryPrev')?.addEventListener('click', () => goToGalleryImage(-1));
+        document.getElementById('galleryNext')?.addEventListener('click', () => goToGalleryImage(1));
+
+        /* Keyboard navigation when gallery is focused/hovered */
+        const galleryMainEl = document.getElementById('galleryMain');
+        if (galleryMainEl) {
+            galleryMainEl.setAttribute('tabindex', '0');
+            galleryMainEl.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') goToGalleryImage(-1);
+                if (e.key === 'ArrowRight') goToGalleryImage(1);
+            });
+
+            /* Touch swipe support */
+            let touchStartX = 0;
+            galleryMainEl.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+            galleryMainEl.addEventListener('touchend', (e) => {
+                const diff = e.changedTouches[0].screenX - touchStartX;
+                if (Math.abs(diff) > 40) goToGalleryImage(diff > 0 ? -1 : 1);
+            }, { passive: true });
+        }
+
+        function adjustQty(delta) {
+            const input = document.getElementById('qtyInput');
+            const val = Math.max(1, Math.min(parseInt(input.max || 999), (parseInt(input.value) || 1) + delta));
+            input.value = val;
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn,.tab-content').forEach(el => el.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        /* --- Recently Viewed Products Logic --- */
+        document.addEventListener("DOMContentLoaded", () => {
+            const recentProductEl = document.querySelector('[data-recent-product]');
+            if (!recentProductEl) return;
+
+            const currentProduct = {
+                id: recentProductEl.getAttribute('data-recent-id'),
+                name: recentProductEl.getAttribute('data-recent-name'),
+                slug: recentProductEl.getAttribute('data-recent-slug'),
+                image: recentProductEl.getAttribute('data-recent-image'),
+                price: recentProductEl.getAttribute('data-recent-price')
+            };
+
+            const STORAGE_KEY = 'practora_recently_viewed';
+            const MAX_ITEMS = 4;
+
+            let currentList = [];
+            try {
+                currentList = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (e) {
+                console.error("Failed to parse recently viewed storage", e);
+            }
+
+            currentList = currentList.filter(item => item.id !== currentProduct.id);
+            currentList.unshift(currentProduct);
+            currentList = currentList.slice(0, MAX_ITEMS);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(currentList));
+
+            const renderList = currentList.filter(item => item.id !== currentProduct.id);
+
+            if (renderList.length > 0) {
+                const gridContainer = document.getElementById('recentlyViewedGrid');
+                const sectionContainer = document.getElementById('recentlyViewedSectionProduct');
+
+                if (gridContainer && sectionContainer) {
+                    gridContainer.innerHTML = renderList.map(prod => `
+                        <div class="product-card">
+                            <div class="product-card-img-wrapper">
+                                <a href="/Shop/Details/${prod.slug || prod.id}">
+                                    ${prod.image
+                            ? `<img src="${prod.image}" alt="${prod.name}" class="product-card-img" loading="lazy" />`
+                            : `<div class="gallery-placeholder" style="height:100%"><span>✦</span></div>`
+                        }
+                                </a>
+                            </div>
+                            <div class="product-card-info">
+                                <h3 class="product-card-title">
+                                    <a href="/Shop/Details/${prod.slug || prod.id}">${prod.name}</a>
+                                </h3>
+                                <div class="product-card-price-row">
+                                    <span class="product-card-price">${prod.price}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    sectionContainer.style.display = 'block';
+                }
+            }
+        });
+    </script>
+}

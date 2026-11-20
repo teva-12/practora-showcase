@@ -1,0 +1,67 @@
+@model IEnumerable<ShopElegance.Core.DTOs.LogoDto>
+@{
+    ViewData["Title"] = "Logos";
+}
+
+<div class="breadcrumb">
+    <a asp-controller="WhiteCoatVariants" asp-action="Index">White Coat Variants</a><span>›</span><span>Logos</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Logo Catalog</h1>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">+ Add Logo</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="content-card-body" style="padding:0">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="table-empty">No logos yet.</td></tr>
+                }
+                @foreach (var logo in Model)
+                {
+                    <tr>
+                        <td>
+                            <div style="width:44px;height:44px;border-radius:6px;border:1px solid var(--border);overflow:hidden;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">
+                                <img src="@logo.ImageUrl" alt="@logo.Name" style="width:100%;height:100%;object-fit:contain" />
+                            </div>
+                        </td>
+                        <td><strong style="font-size:0.9rem">@logo.Name</strong></td>
+                        <td><span class="status-pill" style="background:var(--bg-primary);color:var(--text-secondary)">@logo.Type</span></td>
+                        <td>
+                            @if (logo.IsActive)
+                            {
+                                <span class="status-pill status-delivered">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-cancelled">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a asp-action="Edit" asp-route-id="@logo.Id" class="btn btn-outline btn-sm">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@logo.Id" method="post" style="display:inline"
+                                      onsubmit="return confirm('Delete this logo?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

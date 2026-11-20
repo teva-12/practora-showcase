@@ -1,0 +1,162 @@
+@model ShopElegance.Core.DTOs.PagedResultDto<ShopElegance.Core.DTOs.WhiteCoatVariantAdminDto>
+@{
+    ViewData["Title"] = "White Coat Variants";
+    var products = ViewBag.Products as IEnumerable<ShopElegance.Core.DTOs.ProductListDto> ?? Enumerable.Empty<ShopElegance.Core.DTOs.ProductListDto>();
+}
+
+<div class="page-header">
+    <h1 class="page-title">White Coat Variants</h1>
+    <div class="page-actions">
+        <a asp-controller="EmbroideryFonts" asp-action="Index" class="btn btn-secondary">Embroidery Fonts</a>
+        <a asp-controller="Logos" asp-action="Index" class="btn btn-secondary">Logos</a>
+        <a asp-action="Create" class="btn btn-primary">+ Add Variant</a>
+    </div>
+</div>
+
+<form method="get" class="filters-bar">
+    <input type="text" name="search" class="filter-input" placeholder="Search SKU, color, fabric..." value="@ViewBag.Search" />
+    <select name="productId" class="filter-select">
+        <option value="">All Products</option>
+        @foreach (var p in products)
+        {
+            <option value="@p.Id" selected="@((int?)ViewBag.ProductId == p.Id)">@p.Name</option>
+        }
+    </select>
+    <select name="size" class="filter-select">
+        <option value="">All Sizes</option>
+        @foreach (var s in new[] { "XS", "S", "M", "L", "XL", "XXL", "Custom" })
+        {
+            <option value="@s" selected="@((string?)ViewBag.Size == s)">@s</option>
+        }
+    </select>
+    <select name="isActive" class="filter-select">
+        <option value="">Any Status</option>
+        <option value="true" selected="@((bool?)ViewBag.IsActive == true)">Active</option>
+        <option value="false" selected="@((bool?)ViewBag.IsActive == false)">Inactive</option>
+    </select>
+    <select name="lowStockOnly" class="filter-select">
+        <option value="">All Stock Levels</option>
+        <option value="true" selected="@((bool?)ViewBag.LowStockOnly == true)">Low Stock Only</option>
+    </select>
+    <select name="sortBy" class="filter-select">
+        <option value="">Newest</option>
+        <option value="price_asc" selected="@((string?)ViewBag.SortBy == "price_asc")">Price ↑</option>
+        <option value="price_desc" selected="@((string?)ViewBag.SortBy == "price_desc")">Price ↓</option>
+        <option value="stock_asc" selected="@((string?)ViewBag.SortBy == "stock_asc")">Stock (Low first)</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a asp-action="Index" class="btn btn-secondary btn-sm">Reset</a>
+</form>
+
+<form asp-action="BulkUpdate" method="post" id="bulkForm">
+<div class="content-card">
+    <div class="content-card-header" style="display:flex;justify-content:space-between;align-items:center">
+        <span class="content-card-title">@Model.TotalCount variants</span>
+        <div style="display:flex;gap:8px;align-items:center">
+            <input type="number" name="StockQuantity" class="filter-input" placeholder="Set stock to..." style="width:140px" />
+            <button type="submit" name="action" class="btn btn-outline btn-sm" onclick="return confirm('Apply bulk update to selected variants?')">Bulk Update Stock</button>
+        </div>
+    </div>
+    <div class="content-card-body" style="padding:0">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px"><input type="checkbox" onclick="document.querySelectorAll('.variant-check').forEach(c=>c.checked=this.checked)" /></th>
+                        <th>Variant</th>
+                        <th>Product</th>
+                        <th>SKU</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="8" class="table-empty">No White Coat variants found.</td></tr>
+                    }
+                    @foreach (var v in Model.Items)
+                    {
+                        <tr>
+                            <td><input type="checkbox" class="variant-check" name="VariantIds" value="@v.Id" /></td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:12px">
+                                    <div style="width:44px;height:44px;border-radius:6px;border:1px solid var(--border);overflow:hidden;flex-shrink:0;background:var(--bg-primary);display:flex;align-items:center;justify-content:center">
+                                        @if (!string.IsNullOrEmpty(v.PrimaryImageUrl))
+                                        {
+                                            <img src="@v.PrimaryImageUrl" alt="@v.SKU" style="width:100%;height:100%;object-fit:cover" />
+                                        }
+                                        else
+                                        {
+                                            <span style="color:var(--text-muted)">🧥</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:0.875rem">@v.Size · @v.Color</div>
+                                        <div style="font-size:0.75rem;color:var(--text-muted)">@v.Fabric</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="font-size:0.875rem;color:var(--text-muted)">@v.ProductName</td>
+                            <td style="font-size:0.8rem"><code>@v.SKU</code></td>
+                            <td><strong style="font-size:0.9rem">@v.FinalPrice.ToString("C")</strong></td>
+                            <td>
+                                <span style="font-weight:600;color:@(v.IsOutOfStock ? "#e17055" : v.IsLowStock ? "#fdcb6e" : "var(--text-primary)")">
+                                    @v.StockQuantity
+                                </span>
+                                @if (v.IsOutOfStock)
+                                {
+                                    <br /><span style="font-size:0.7rem;color:#e17055">Out of stock</span>
+                                }
+                                else if (v.IsLowStock)
+                                {
+                                    <br /><span style="font-size:0.7rem;color:#fdcb6e">Low stock</span>
+                                }
+                            </td>
+                            <td>
+                                @if (v.IsActive)
+                                {
+                                    <span class="status-pill status-delivered">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="status-pill status-cancelled">Inactive</span>
+                                }
+                            </td>
+                            <td onclick="event.stopPropagation()">
+                                <div style="display:flex;gap:6px">
+                                    <a asp-action="Edit" asp-route-id="@v.Id" class="btn btn-outline btn-sm">Edit</a>
+                                    <form asp-action="Delete" asp-route-id="@v.Id" method="post" style="display:inline"
+                                          onsubmit="return confirm('Delete this variant?')">
+                                        <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination">
+                @if (Model.HasPreviousPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page-1)" class="page-btn">← Prev</a>
+                }
+                @for (int i = Math.Max(1, Model.Page-2); i <= Math.Min(Model.TotalPages, Model.Page+2); i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" class="page-btn @(i==Model.Page?"active":"")">@i</a>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page+1)" class="page-btn">Next →</a>
+                }
+            </div>
+        }
+    </div>
+</div>
+</form>

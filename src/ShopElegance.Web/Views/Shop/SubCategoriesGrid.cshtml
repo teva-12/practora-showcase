@@ -1,0 +1,42 @@
+﻿@model ShopElegance.Core.DTOs.CategoryDto
+
+@{
+    ViewData["Title"] = Model?.Name ?? "الأقسام الفرعية";
+    var subCategories = ViewBag.SubCategories as List<ShopElegance.Core.DTOs.CategoryDto> ?? new List<ShopElegance.Core.DTOs.CategoryDto>();
+}
+
+<div class="container my-5" style="direction: rtl;">
+    <!-- Breadcrumb بسيط للتنقل -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">الرئيسية</a></li>
+            <li class="breadcrumb-item"><a href="/Shop" class="text-decoration-none">المتجر</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model?.Name</li>
+        </ol>
+    </nav>
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold display-6">@Model?.Name</h2>
+        <p class="text-muted fs-5">اختر السنة الدراسية أو القسم لعرض الأدوات والمنتجات المتاحة</p>
+    </div>
+
+    <!-- كروت الأقسام الفرعية الـ 4 -->
+    <div class="row g-4 justify-content-center">
+        @foreach (var sub in subCategories)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <a href="@Url.Action("Index", "Shop", new { categoryId = sub.Id })" class="text-decoration-none text-dark">
+                    <div class="card h-100 shadow-sm border-0 text-center p-4 hover-card" style="border-radius: 12px; transition: transform 0.2s;">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                            <div class="mb-3 text-primary display-5">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                            <h5 class="card-title fw-bold mb-3">@sub.Name</h5>
+                            <span class="btn btn-outline-primary btn-sm rounded-pill px-3">عرض الأدوات</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>

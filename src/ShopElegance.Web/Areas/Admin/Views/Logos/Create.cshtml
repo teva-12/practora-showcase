@@ -1,0 +1,56 @@
+@model ShopElegance.Core.DTOs.CreateLogoDto
+@{
+    ViewData["Title"] = "Add Logo";
+}
+
+<div class="breadcrumb">
+    <a asp-action="Index">Logos</a><span>›</span><span>Add Logo</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Add Logo</h1>
+    <div class="page-actions">
+        <a asp-action="Index" class="btn btn-secondary">← Cancel</a>
+        <button type="submit" form="logoForm" class="btn btn-primary">Save Logo</button>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" id="logoForm">
+    <div class="content-card" style="max-width:600px">
+        <div class="content-card-body">
+            <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"block")"></div>
+
+            <div class="form-group">
+                <label asp-for="Name">Logo Name *</label>
+                <input asp-for="Name" class="form-control" placeholder="e.g. Cairo University" />
+                <span asp-validation-for="Name" class="field-validation-error"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type">Type *</label>
+                <select asp-for="Type" class="form-control">
+                    <option value="University">University</option>
+                    <option value="Hospital">Hospital</option>
+                    <option value="Custom">Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Logo Image *</label>
+                <div class="image-upload-area" onclick="document.getElementById('logoImage').click()">
+                    <div class="image-upload-icon">🖼</div>
+                    <p style="font-size:0.875rem;color:var(--text-muted)">Click to choose a logo image</p>
+                    <small class="help-text">PNG or WebP with transparent background recommended</small>
+                    <input type="file" id="logoImage" name="imageFile" accept="image/*" style="display:none" onchange="document.getElementById('logoFileName').textContent = this.files[0]?.name || ''" />
+                </div>
+                <small id="logoFileName" class="help-text"></small>
+                <span asp-validation-for="ImageUrl" class="field-validation-error"></span>
+            </div>
+            <div class="form-check">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                <label asp-for="IsActive">Active (available for customers to choose)</label>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}

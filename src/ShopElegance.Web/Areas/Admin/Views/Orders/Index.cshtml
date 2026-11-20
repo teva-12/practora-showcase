@@ -1,0 +1,93 @@
+@model ShopElegance.Core.DTOs.PagedResultDto<ShopElegance.Core.DTOs.OrderListDto>
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Orders</h1>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar">
+    <div class="filter-input-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" name="search" class="filter-input" placeholder="Search by order # or email" value="@ViewBag.Search" />
+    </div>
+    <select name="status" class="filter-select">
+        <option value="">All Statuses</option>
+        @foreach (var s in (string[])ViewBag.Statuses)
+        {
+            <option value="@s" selected="@(ViewBag.Status == s)">@s</option>
+        }
+    </select>
+    <input type="date" name="from" id="fromDate" class="filter-input" value="@(ViewBag.From != null ? ((DateTime)ViewBag.From).ToString("yyyy-MM-dd") : "")" style="max-width:160px" />
+    <input type="date" name="to" id="toDate" class="filter-input" value="@(ViewBag.To != null ? ((DateTime)ViewBag.To).ToString("yyyy-MM-dd") : "")" style="max-width:160px" />
+    <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+    <a asp-action="Index" class="btn btn-secondary btn-sm">Clear</a>
+</form>
+
+<div class="content-card">
+    <div class="content-card-body" style="padding:0">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="8" class="table-empty">No orders found.</td></tr>
+                    }
+                    @foreach (var order in Model.Items)
+                    {
+                        <tr data-href="@Url.Action("Detail", new { id = order.Id })">
+                            <td><span class="order-link">@order.OrderNumber</span></td>
+                            <td>
+                                <div style="font-weight:600;font-size:0.875rem">@order.CustomerName</div>
+                                <div style="font-size:0.75rem;color:var(--text-muted)">@order.CustomerEmail</div>
+                            </td>
+                            <td style="font-size:0.8rem;color:var(--text-muted)">@order.CreatedAt.ToString("MMM d, yyyy HH:mm")</td>
+                            <td style="font-size:0.875rem">@order.ItemCount</td>
+                            <td><strong style="font-size:0.9rem">@order.Total.ToString("C")</strong></td>
+                            <td><span class="status-pill status-@order.PaymentStatus.ToLower()">@order.PaymentStatus</span></td>
+                            <td><span class="status-pill status-@order.Status.ToLower()">@order.Status</span></td>
+                            <td onclick="event.stopPropagation()">
+                                <a asp-action="Detail" asp-route-id="@order.Id" class="btn btn-outline btn-sm">View</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="pagination">
+                @if (Model.HasPreviousPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page-1)" asp-route-search="@ViewBag.Search"
+                       asp-route-status="@ViewBag.Status" class="page-btn">← Prev</a>
+                }
+                @for (int i = Math.Max(1, Model.Page-2); i <= Math.Min(Model.TotalPages, Model.Page+2); i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" asp-route-search="@ViewBag.Search"
+                       asp-route-status="@ViewBag.Status" class="page-btn @(i==Model.Page?"active":"")">@i</a>
+                }
+                @if (Model.HasNextPage)
+                {
+                    <a asp-action="Index" asp-route-page="@(Model.Page+1)" asp-route-search="@ViewBag.Search"
+                       asp-route-status="@ViewBag.Status" class="page-btn">Next →</a>
+                }
+            </div>
+        }
+    </div>
+</div>

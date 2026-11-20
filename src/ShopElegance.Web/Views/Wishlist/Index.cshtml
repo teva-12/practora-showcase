@@ -1,0 +1,76 @@
+@model ShopElegance.Core.DTOs.WishlistDto
+@{
+    ViewData["Title"] = "My Wishlist";
+}
+
+<div style="padding:40px 0 80px">
+    <div class="container">
+        <h1 class="page-title mb-4">My Wishlist <span style="font-size:1rem;font-weight:400;color:var(--text-muted)">(@Model.Count items)</span></h1>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" data-auto-dismiss>@TempData["SuccessMessage"]</div>
+        }
+
+        @if (!Model.Items.Any())
+        {
+            <div class="empty-state">
+                <div class="empty-icon">♡</div>
+                <h3>Your wishlist is empty</h3>
+                <p>Save items you love and come back to them later.</p>
+                <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">Explore Products</a>
+            </div>
+        }
+        else
+        {
+            <div class="wishlist-grid" data-reveal-stagger>
+                @foreach (var item in Model.Items)
+                {
+                    <div class="product-card">
+                        <div class="product-img-wrap">
+                            <a asp-controller="Shop" asp-action="Product" asp-route-slug="@item.ProductSlug">
+                                @if (!string.IsNullOrEmpty(item.ProductImageUrl))
+                                {
+                                    <img src="@item.ProductImageUrl" alt="@item.ProductName" class="product-img" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="product-img-placeholder"><span>✦</span></div>
+                                }
+                            </a>
+                            @if (!item.InStock)
+                            {
+                                <div class="product-badges"><span class="badge badge-oos">Out of Stock</span></div>
+                            }
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">
+                                <a asp-controller="Shop" asp-action="Product" asp-route-slug="@item.ProductSlug">@item.ProductName</a>
+                            </h3>
+                            <div class="product-price">
+                                <span class="price-current">@item.Price.ToString("C")</span>
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:12px">
+                                <form asp-controller="Cart" asp-action="Add" method="post" style="flex:1">
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <input type="hidden" name="quantity" value="1" />
+                                    <button type="submit" class="btn btn-primary" style="width:100%;padding:9px;"
+                                            @(!item.InStock ? "disabled" : "")>
+                                        🛒 Add to Cart
+                                    </button>
+                                </form>
+                                <form asp-controller="Wishlist" asp-action="Remove" method="post">
+                                    <input type="hidden" name="productId" value="@item.ProductId" />
+                                    <button type="submit" class="btn btn-outline" style="padding:9px 12px;color:#e17055;border-color:#e17055" title="Remove">✕</button>
+                                </form>
+                            </div>
+                            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:8px">
+                                Added @item.AddedAt.ToString("MMM d, yyyy")
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

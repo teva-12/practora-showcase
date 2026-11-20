@@ -1,0 +1,63 @@
+@model IEnumerable<ShopElegance.Core.DTOs.CategoryDto>
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="page-header">
+    <h1 class="page-title">Categories</h1>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">+ Add Category</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="content-card-body" style="padding:0">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Parent</th>
+                    <th>Products</th>
+                    <th>Sort</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="table-empty">No categories yet.</td></tr>
+                }
+                @foreach (var cat in Model.OrderBy(c => c.SortOrder))
+                {
+                    <tr>
+                        <td><strong style="font-size:0.9rem">@cat.Name</strong><br/><span style="font-size:0.75rem;color:var(--text-muted)">/@cat.Slug</span></td>
+                        <td style="font-size:0.875rem;color:var(--text-muted)">@(cat.ParentCategoryName ?? "—")</td>
+                        <td style="font-size:0.875rem">@cat.ProductCount</td>
+                        <td style="font-size:0.875rem">@cat.SortOrder</td>
+                        <td>
+                            @if (cat.IsActive)
+                            {
+                                <span class="status-pill status-delivered">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-cancelled">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a asp-action="Edit" asp-route-id="@cat.Id" class="btn btn-outline btn-sm">Edit</a>
+                                <form asp-action="Delete" method="post" style="display:inline"
+                                      onsubmit="return confirm('Delete this category? Products in it will not be deleted.')">
+                                    <input type="hidden" name="id" value="@cat.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

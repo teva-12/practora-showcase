@@ -1,0 +1,202 @@
+@model ShopElegance.Web.ViewModels.WhiteCoatCustomizeViewModel
+@{
+    ViewData["Title"] = $"Customize {Model?.Product?.Name}";
+}
+
+<div class="wc-customizer" data-wc-customizer data-product-id="@Model?.Product?.Id" data-base-price="@Model?.Product?.Price">
+
+    <div class="breadcrumb">
+        <a asp-controller="Shop" asp-action="Index">Shop</a><span>›</span>
+        <a asp-controller="Shop" asp-action="Product" asp-route-slug="@Model?.Product?.Slug">@Model?.Product?.Name</a><span>›</span>
+        <span>Customize</span>
+    </div>
+
+    <div class="wc-layout">
+        <!-- Live Preview -->
+        <div class="wc-preview-column">
+            <div class="wc-preview-stage" aria-live="polite" data-wc-tilt-stage>
+                <span class="wc-tilt-hint">↻ Move to view</span>
+                <div class="wc-preview-image-wrap">
+                    <img data-wc-base-image src="@(string.IsNullOrEmpty(Model?.Product?.PrimaryImageUrl) ? "/images/default-coat.jpg" : Model?.Product?.PrimaryImageUrl)" alt="White coat preview" class="wc-preview-base" />
+                    <img data-wc-logo-image src="" alt="" class="wc-preview-logo wc-hidden" />
+                    <div data-wc-text-overlay class="wc-preview-text wc-hidden" aria-hidden="true"></div>
+                </div>
+                <div data-wc-preview-loading class="wc-preview-loading wc-hidden">Updating preview…</div>
+            </div>
+            <div class="wc-thumb-row" data-wc-gallery role="list" aria-label="Variant images"></div>
+        </div>
+
+        <!-- Options -->
+        <div class="wc-options-column">
+            <h1 class="wc-title">@Model?.Product?.Name</h1>
+            <p class="wc-subtitle">@Model?.Product?.ShortDescription</p>
+
+            <div class="wc-price-box" role="status" aria-live="polite">
+                <div>
+                    <div>Base Price: 300.00 EGP</div>
+                    <div data-wc-customization-fee-row class="wc-hidden">Customization Fee: +150 EGP</div>
+                    <div style="font-weight:bold; margin-top: 4px;">
+                        Total: <span data-wc-final-price class="wc-final-price">300.00 EGP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="wc-stock-message" class="wc-alert wc-hidden" role="alert" data-wc-stock-message></div>
+
+            <!-- Variant Attributes -->
+            <fieldset class="wc-section">
+                <legend class="wc-section-title">1. Choose Your Fit</legend>
+
+            <div class="wc-attribute-grid">
+                <div class="wc-field">
+                    <label for="wc-coat-type">Coat Type</label>
+                    <select id="wc-coat-type" data-wc-field="coatType" class="form-control">
+                        <option value="Normal">Normal</option>
+                        <option value="Zip">بسوسته</option>
+                    </select>
+                </div>
+                <div class="wc-field">
+                    <label for="wc-size" id="wc-size-label">Size</label>
+                    <select id="wc-size" data-wc-field="size" class="form-control" aria-describedby="wc-size-label">
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                        <option value="X-Large">X-Large</option>
+                        <option value="2X-Large">2X-Large</option>
+                        <option value="3X-Large">3X-Large</option>
+                    </select>
+                </div>
+                <div class="wc-field">
+                    <label for="wc-fabric">Fabric</label>
+                    <select id="wc-fabric" data-wc-field="fabric" class="form-control">
+                        <option value="Cotton">Cotton</option>
+                        <option value="Regular">Regular</option>
+                    </select>
+                </div>
+                <!-- Color is fixed to White per brief, but kept as a hidden field or read-only if needed for state -->
+                <input type="hidden" id="wc-color" data-wc-field="color" value="White" />
+            </div>
+            <p class="wc-field-error wc-hidden" data-wc-error="variant" role="alert"></p>
+        </fieldset>
+
+            <!-- Embroidery -->
+            <fieldset class="wc-section">
+                <legend class="wc-section-title">2. Embroidery (optional)</legend>
+
+                <div class="wc-check-row">
+                    <input type="checkbox" id="wc-embroidery-toggle" data-wc-embroidery-toggle />
+                    <label for="wc-embroidery-toggle">Add embroidered name & details</label>
+                </div>
+
+                <div data-wc-embroidery-fields class="wc-hidden">
+                    <div class="wc-field">
+                        <label for="wc-student-name">Student Name</label>
+                        <input type="text" id="wc-student-name" data-wc-field="studentName" class="form-control" maxlength="150" />
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-doctor-name">Doctor Name</label>
+                        <input type="text" id="wc-doctor-name" data-wc-field="doctorName" class="form-control" maxlength="150" />
+                    </div>
+                    <p class="wc-field-error wc-hidden" data-wc-error="name" role="alert">Enter a student name or doctor name.</p>
+
+                    <div class="wc-field">
+                        <label for="wc-faculty">Faculty</label>
+                        <input type="text" id="wc-faculty" data-wc-field="faculty" class="form-control" maxlength="150" />
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-department">Department</label>
+                        <input type="text" id="wc-department" data-wc-field="department" class="form-control" maxlength="150" />
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-grad-year">Graduation Year</label>
+                        <input type="number" id="wc-grad-year" data-wc-field="graduationYear" class="form-control" min="1950" max="2100" />
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-font">Font</label>
+                        <select id="wc-font" data-wc-field="embroideryFontId" class="form-control"></select>
+                        <p class="wc-field-error wc-hidden" data-wc-error="font" role="alert">Please choose a font.</p>
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-text-color">Text Color</label>
+                        <input type="color" id="wc-text-color" data-wc-field="embroideryTextColor" class="form-control wc-color-input" value="#1a1a1a" />
+                    </div>
+                    <div class="wc-field">
+                        <label for="wc-position">Embroidery Position</label>
+                        <select id="wc-position" data-wc-field="embroideryPosition" class="form-control">
+                            <option value="LeftChest">Left Chest</option>
+                            <option value="RightChest">Right Chest</option>
+                            <option value="Sleeve">Sleeve</option>
+                            <option value="Back">Back</option>
+                        </select>
+                        <p class="wc-field-error wc-hidden" data-wc-error="position" role="alert">Please choose a position.</p>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Logo -->
+            <fieldset class="wc-section">
+                <legend class="wc-section-title">3. Logo (optional)</legend>
+
+                <div class="wc-field">
+                    <label for="wc-logo-upload" style="font-size: 1.1rem; font-weight: 700;">Upload Your Logo (PNG/JPG/WebP, max 5MB)</label>
+                    <input type="file" id="wc-logo-upload" data-wc-logo-upload accept="image/png,image/jpeg,image/webp" class="form-control" style="padding: 10px; border: 2px dashed var(--brand-accent-dark);" />
+                    <p class="wc-field-error wc-hidden" data-wc-error="customLogo" role="alert">Please upload a logo image.</p>
+                    <img data-wc-custom-logo-preview class="wc-logo-thumb wc-hidden" alt="Uploaded logo preview" style="width: 100px; height: 100px;" />
+                </div>
+            </fieldset>
+
+            <!-- Shipping Customization -->
+            <fieldset class="wc-section">
+                <legend class="wc-section-title">4. Shipping Extras (optional)</legend>
+                <div class="wc-check-row">
+                    <input type="checkbox" id="wc-special-packaging" data-wc-field="requiresSpecialPackaging" />
+                    <label for="wc-special-packaging">Requires Special Packaging</label>
+                </div>
+                <div class="wc-check-row">
+                    <input type="checkbox" id="wc-is-fragile" data-wc-field="isFragile" />
+                    <label for="wc-is-fragile">Is Fragile</label>
+                </div>
+            </fieldset>
+
+            <!-- Quantity + Add to cart -->
+            <div class="wc-section wc-actions">
+                <div class="wc-field wc-qty-field">
+                    <label for="wc-quantity">Quantity</label>
+                    <input type="number" id="wc-quantity" data-wc-quantity value="1" min="1" max="20" class="form-control" />
+                </div>
+                <button type="button" class="btn btn-primary-lg" data-wc-add-to-cart>🧵 Add Customized Coat to Cart</button>
+                <p class="wc-field-error wc-hidden" data-wc-error="general" role="alert"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var wcJsonOptions = new System.Text.Json.JsonSerializerOptions
+    {
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles,
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+    };
+}
+
+<script type="application/json" id="wc-data">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+    {
+            product = Model?.Product,
+            options = Model?.Options,
+            productId = Model?.Product?.Id ?? 0,
+            basePrice = Model?.Product?.Price ?? 0,
+            variants = Model?.Options?.Variants,
+            fonts = Model?.Options?.AvailableFonts,
+            logos = Model?.Options?.AvailableLogos,
+            positions = Model?.Options?.AvailableEmbroideryPositions
+    }, wcJsonOptions))
+</script>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/whitecoat-customizer.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/whitecoat-customizer.js" asp-append-version="true"></script>
+}

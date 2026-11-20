@@ -1,0 +1,63 @@
+@model IEnumerable<ShopElegance.Core.DTOs.EmbroideryFontDto>
+@{
+    ViewData["Title"] = "Embroidery Fonts";
+}
+
+<div class="breadcrumb">
+    <a asp-controller="WhiteCoatVariants" asp-action="Index">White Coat Variants</a><span>›</span><span>Embroidery Fonts</span>
+</div>
+<div class="page-header">
+    <h1 class="page-title">Embroidery Fonts</h1>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">+ Add Font</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <div class="content-card-body" style="padding:0">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Preview</th>
+                    <th>Name</th>
+                    <th>CSS Font Family</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="table-empty">No embroidery fonts yet.</td></tr>
+                }
+                @foreach (var font in Model)
+                {
+                    <tr>
+                        <td style="font-family:'@font.CssFontFamily';font-size:1.1rem">Sample Text</td>
+                        <td><strong style="font-size:0.9rem">@font.Name</strong></td>
+                        <td style="font-size:0.8rem;color:var(--text-muted)"><code>@font.CssFontFamily</code></td>
+                        <td>
+                            @if (font.IsActive)
+                            {
+                                <span class="status-pill status-delivered">Active</span>
+                            }
+                            else
+                            {
+                                <span class="status-pill status-cancelled">Inactive</span>
+                            }
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:6px">
+                                <a asp-action="Edit" asp-route-id="@font.Id" class="btn btn-outline btn-sm">Edit</a>
+                                <form asp-action="Delete" asp-route-id="@font.Id" method="post" style="display:inline"
+                                      onsubmit="return confirm('Delete this font?')">
+                                    <button type="submit" class="btn btn-danger btn-sm">Del</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
